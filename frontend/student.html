@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Students</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<div id="toast" class="toast">Student added successfully</div>
+<body>
+
+    <div class="navbar">
+    <div class="logo">Code & Conquer</div>
+
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="student.html">Students</a>
+        <a href="login.html" onclick="localStorage.clear()">Logout</a>
+    </div>
+</div>
+
+<div class="login-container">
+    <h2>Students List</h2>
+    <input type="text" id="search" placeholder="Search student..." onkeyup="searchStudent()">
+
+    <table border="1" width="100%">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+    </table>
+
+    <button onclick="addStudent()">
+        <i class="fa-solid fa-plus"></i>Add Student</button>
+    <br><br>
+    <button onclick="goBack()">
+         <i class="fa-solid fa-arrow-left"></i>Back to Dashboard</button>
+         <button onclick="exportStudents()">
+    <i class="fa-solid fa-download"></i> Export Students
+</button>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal" id="studentModal">
+    <div class="modal-content">
+        <h3>Add Student</h3>
+
+        <input type="text" id="studentName" placeholder="Student Name">
+        <input type="email" id="studentEmail" placeholder="Student Email">
+
+        <button onclick="saveStudent()">
+            <i class="fa-solid fa-check"></i> Save
+        </button>
+
+        <button class="close-btn" onclick="closeModal()">
+            Cancel
+        </button>
+    </div>
+</div>
+
+<script src="student.js"></script>
+<footer class="footer">
+    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi & Sneha</p>
+</footer>
+</body>
+</html>

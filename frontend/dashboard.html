@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="navbar">
+    <div class="logo">Code & Conquer</div>
+
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="student.html">Students</a>
+        <a href="login.html" onclick="localStorage.clear()">Logout</a>
+        <button onclick="toggleDarkMode()" class="dark-btn">
+    <i class="fa-solid fa-moon"></i>
+    <i class="fa-solid fa-user-circle profile-icon"></i>
+</button>
+    </div>
+</div>
+
+<div class="login-container">
+    <h2>Admin Dashboard 🚀</h2>
+    <p id="welcome">Welcome, Admin 👋</p>
+    <div class="cards">
+    <div class="card">
+        <h3><i class="fa-solid fa-users"></i>Students</h3>
+        <p id="studentCount">0</p>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-building"></i>Tenants</h3>
+        <p id="tenantCount">0</p>
+    </div>
+
+    <div class="card">
+         <h3><i class="fa-solid fa-book"></i> Courses</h3>
+         <p id="courseCount">0</p>
+    </div>
+</div>
+<div class="chart-container">
+    <canvas id="dashboardChart"></canvas>
+</div>
+     
+<button class = "dashboard-btn" onclick="window.location.href='student.html'">
+      <i class="fa-solid fa-user-graduate"></i> Manage Students
+</button>
+
+<button onclick="window.location.href='tenants.html'">
+    Manage Tenants
+</button>
+<br><br>
+<button onclick="window.location.href='courses.html'">
+    Manage Courses
+</button>
+<br><br>
+<button onclick="logout()">
+       <i class="fa-solid fa-right-from-bracket"></i><Logout
+    </button>
+</div>
+
+<script src="dashboard.js"></script>
+<footer class="footer">
+    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi & Sneha</p>
+</footer>
+</body>
+</html>
