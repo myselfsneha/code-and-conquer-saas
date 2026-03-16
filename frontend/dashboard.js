@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (studentEl) studentEl.innerText = studentCount;
     if (tenantEl) tenantEl.innerText = tenantCount;
     if (courseEl) courseEl.innerText = courseCount;
+<<<<<<< HEAD
 });
 const studentsCount = localStorage.getItem("studentsCount") || 0;
 const tenantsCount = localStorage.getItem("tenantsCount") || 0;
@@ -75,3 +76,6 @@ if (ctx) {
 function toggleDarkMode(){
     document.body.classList.toggle("dark-mode");
 }
+=======
+});
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca

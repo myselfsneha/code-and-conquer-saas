@@ -39,6 +39,7 @@ body {
 }
 
 /* ===== Dashboard Cards ===== */
+<<<<<<< HEAD
 /* DASHBOARD CARDS */
 
 .cards{
@@ -74,6 +75,48 @@ body {
 .card:hover{
     transform: translateY(-6px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+=======
+.cards {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.card {
+    flex: 1;
+    background: #f3f4f6;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.card h3 {
+    font-size: 14px;
+    color: #555;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* ===== Buttons ===== */
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: #667eea;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #5a67d8;
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 }
 
 /* ===== Tables ===== */
@@ -113,6 +156,7 @@ i {
 }
 
 /* ===== Dashboard Buttons ===== */
+<<<<<<< HEAD
 .dashboard-btn{
     background: #2f6fed;
     color: white;
@@ -142,6 +186,10 @@ button{
 
 button:hover{
     background: #222;
+=======
+.dashboard-btn {
+    margin-bottom: 10px;
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 }
 
 /* ===== Modal Overlay ===== */
@@ -642,6 +690,7 @@ body {
     background: #f9fafb;
     border-radius: 10px;
     text-align: center;
+<<<<<<< HEAD
 }
 .chart-container{
     width: 100%;
@@ -731,4 +780,6 @@ tr:nth-child(even){
     background:#1f2937;
     color:#e5e7eb;
     font-size:14px;
+=======
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 }

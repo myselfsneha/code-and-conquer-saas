@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
 ======================= */
 function renderStudents() {
     const table = document.getElementById("studentTable");
+<<<<<<< HEAD
 table.innerHTML = "";
 
 if(students.length === 0){
@@ -29,6 +30,9 @@ if(students.length === 0){
     `;
     return;
 }
+=======
+    table.innerHTML = "";
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 
     students.forEach((student, index) => {
         table.innerHTML += `
@@ -78,7 +82,10 @@ function saveStudent() {
 
     closeModal();
     renderStudents();
+<<<<<<< HEAD
     showToast();
+=======
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 
     document.getElementById("studentName").value = "";
     document.getElementById("studentEmail").value = "";
@@ -88,6 +95,7 @@ function saveStudent() {
    DELETE STUDENT
 ======================= */
 function deleteStudent(index) {
+<<<<<<< HEAD
 
     const confirmDelete = confirm("Are you sure you want to delete this student?");
 
@@ -100,6 +108,12 @@ function deleteStudent(index) {
         updateStudentCount();
     }
 
+=======
+    students.splice(index, 1);
+    localStorage.setItem("students", JSON.stringify(students));
+    renderStudents();
+    updateStudentCount();
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 }
 
 /* =======================
@@ -126,6 +140,7 @@ function updateStudentCount() {
 ======================= */
 function goBack() {
     window.location.href = "dashboard.html";
+<<<<<<< HEAD
 }
 function exportStudents(){
 
@@ -156,4 +171,6 @@ function showToast(){
     setTimeout(()=>{
         toast.classList.remove("show");
     },3000);
+=======
+>>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 }
