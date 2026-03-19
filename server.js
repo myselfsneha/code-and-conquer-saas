@@ -97,13 +97,22 @@ app.post('/login', (req, res) => {
   const sql = "SELECT * FROM users WHERE email = ?";
 
   db.query(sql, [email], async (err, results) => {
-    if (err) return res.send(err);
-    if (results.length === 0) return res.send("User not found");
+
+    if (err) {
+      return res.status(500).json({ message: "Database Error", error: err });
+    }
+
+    if (results.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     const user = results[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.send("Invalid password");
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
 
     const token = jwt.sign(
       { user_id: user.user_id, tenant_id: user.tenant_id, role: user.role },
@@ -114,7 +123,6 @@ app.post('/login', (req, res) => {
     res.json({ message: "Login successful", token });
   });
 });
-
 /* ================= ADD STUDENT ================= */
 
 app.post("/add-student", authMiddleware, (req, res) => {
@@ -155,38 +163,35 @@ app.get("/students", authMiddleware, (req, res) => {
   let sql = "SELECT * FROM students WHERE tenant_id = ?";
   let params = [req.user.tenant_id];
 
-  // 🔎 Search by name
   if (search) {
-    sql += " AND name LIKE ?";
-    params.push(`%${search}%`);
+    sql += " AND LOWER(name) LIKE ?";
+    params.push(`%${search.toLowerCase()}%`);
   }
 
-  // 🎯 Filter by course
   if (course) {
-    sql += " AND course = ?";
-    params.push(course);
+    sql += " AND LOWER(course) = ?";
+    params.push(course.toLowerCase());
   }
 
-  // 📅 Filter by year
   if (year) {
     sql += " AND year = ?";
-    params.push(year);
+    params.push(parseInt(year));
   }
 
-  console.log("FINAL SQL:", sql);        // 🔍 DEBUG
-  console.log("PARAMS:", params);        // 🔍 DEBUG
+  console.log("QUERY:", req.query);
+  console.log("SQL:", sql);
+  console.log("PARAMS:", params);
 
   db.query(sql, params, (err, results) => {
-
     if (err) {
-      console.error("❌ ERROR:", err);
+      console.error("ERROR:", err);
       return res.status(500).json({ message: "Database Error", error: err });
     }
 
+    console.log("RESULTS:", results);
     res.json(results);
   });
 });
-
 /* ================= DELETE ================= */
 
 app.delete("/delete-student/:id", authMiddleware, (req, res) => {

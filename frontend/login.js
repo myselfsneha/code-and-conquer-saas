@@ -1,13 +1,7 @@
 async function login() {
-
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
-
-    if (!email || !password) {
-        message.innerText = "Please fill all fields";
-        return;
-    }
 
     try {
         const res = await fetch("http://localhost:3000/login", {
@@ -20,20 +14,20 @@ async function login() {
 
         const data = await res.json();
 
-        if (res.ok) {
-            // ✅ SAVE REAL TOKEN
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("email", email);
+        console.log("LOGIN RESPONSE:", data); // 🔍 DEBUG
 
-            console.log("REAL TOKEN:", data.token);
-
-            window.location.href = "dashboard.html";
-        } else {
+        if (!res.ok) {
             message.innerText = data.message || "Login failed";
+            return;
         }
 
-    } catch (error) {
-        console.error("Login error:", error);
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("email", email);
+
+        window.location.href = "dashboard.html";
+
+    } catch (err) {
+        console.error("LOGIN ERROR:", err);
         message.innerText = "Server error";
     }
 }

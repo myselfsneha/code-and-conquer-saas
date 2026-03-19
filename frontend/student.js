@@ -6,52 +6,71 @@ window.onload = fetchStudents;
 ======================= */
 async function fetchStudents() {
 
+    console.log("🔥 FETCH CALLED");
+
     const token = localStorage.getItem("token");
 
-    const search = document.getElementById("search").value;
+    if (!token) {
+        alert("No token found. Please login again.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    const search = document.getElementById("search").value.trim();
     const course = document.getElementById("course").value;
     const year = document.getElementById("year").value;
 
+    // ✅ Build URL properly
     let url = "http://localhost:3000/students?";
 
-    if (search) url += `search=${search}&`;
-    if (course) url += `course=${course}&`;
-    if (year) url += `year=${year}&`;
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (course) url += `course=${encodeURIComponent(course)}&`;
+    if (year) url += `year=${encodeURIComponent(year)}&`;
 
-    const res = await fetch(url, {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
+    console.log("🌐 URL:", url);
 
-    const data = await res.json();
-
-    let rows = "";
-
-    if (data.length === 0) {
-        rows = `<tr><td colspan="6">No students found</td></tr>`;
-    } else {
-        data.forEach(student => {
-            rows += `
-                <tr>
-                    <td>${student.student_id}</td>
-                    <td>${student.name}</td>
-                    <td>${student.email}</td>
-                    <td>${student.course}</td>
-                    <td>${student.year}</td>
-                    <td>
-                        <button onclick="deleteStudent(${student.student_id})">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
+    try {
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
         });
+
+        const data = await res.json();
+
+        console.log("📦 RESPONSE:", data);
+
+        let rows = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+            rows = `<tr><td colspan="6">No students found</td></tr>`;
+        } else {
+            data.forEach(student => {
+                rows += `
+                    <tr>
+                        <td>${student.student_id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.email}</td>
+                        <td>${student.course || "-"}</td>
+                        <td>${student.year || "-"}</td>
+                        <td>
+                            <button onclick="deleteStudent(${student.student_id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById("tableBody").innerHTML = rows;
+
+    } catch (error) {
+        console.error("❌ FETCH ERROR:", error);
+        alert("Something went wrong while fetching students");
     }
-
-    document.getElementById("tableBody").innerHTML = rows;
 }
-
 /* =======================
    ADD STUDENT
 ======================= */
