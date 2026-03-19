@@ -150,9 +150,30 @@ app.post("/add-student", authMiddleware, (req, res) => {
 
 app.get("/students", authMiddleware, (req, res) => {
 
-  const sql = "SELECT * FROM students WHERE tenant_id = ?";
+  const { search, course, year } = req.query;
 
-  db.query(sql, [req.user.tenant_id], (err, results) => {
+  let sql = "SELECT * FROM students WHERE tenant_id = ?";
+  let values = [req.user.tenant_id];
+
+  // 🔎 Search by name
+  if (search) {
+    sql += " AND name LIKE ?";
+    values.push(`%${search}%`);
+  }
+
+  // 🎯 Filter by course
+  if (course) {
+    sql += " AND course = ?";
+    values.push(course);
+  }
+
+  // 🎯 Filter by year
+  if (year) {
+    sql += " AND year = ?";
+    values.push(year);
+  }
+
+  db.query(sql, values, (err, results) => {
     if (err) return res.send(err);
     res.json(results);
   });
