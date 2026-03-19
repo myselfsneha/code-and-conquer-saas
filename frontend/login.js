@@ -1,20 +1,39 @@
-function login() {
+async function login() {
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
 
-    if (email === "" || password === "") {
+    if (!email || !password) {
         message.innerText = "Please fill all fields";
         return;
     }
 
-    if (email === "admin@gmail.com" && password === "admin123") {
-        localStorage.setItem("token", "fake-jwt-token");
-        localStorage.setItem("email", email);
+    try {
+        const res = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        });
 
-        console.log("Token saved:", localStorage.getItem("token")); // 🔍 DEBUG
-        window.location.href = "dashboard.html";
-    } else {
-        message.innerText = "Invalid email or password";
+        const data = await res.json();
+
+        if (res.ok) {
+            // ✅ SAVE REAL TOKEN
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("email", email);
+
+            console.log("REAL TOKEN:", data.token);
+
+            window.location.href = "dashboard.html";
+        } else {
+            message.innerText = data.message || "Login failed";
+        }
+
+    } catch (error) {
+        console.error("Login error:", error);
+        message.innerText = "Server error";
     }
 }
