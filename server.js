@@ -16,7 +16,7 @@ app.use(cors());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '2003',
+  password: 'shivani@mysql17',
   database: 'saas_student'
 });
 
@@ -144,8 +144,10 @@ app.get("/students", authMiddleware, (req, res) => {
   const sql = "SELECT * FROM students WHERE tenant_id = ?";
 
   db.query(sql, [req.user.tenant_id], (err, results) => {
-    if (err) return res.status(500).json({ message: "Database Error" });
-
+    if (err){
+       console.error("❌ REAL ERROR:", err);
+    return res.status(500).json({ message: "Database Error" });
+    }
     res.json(results);
   });
 });
