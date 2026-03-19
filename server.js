@@ -4,7 +4,6 @@ const cors = require('cors');
 const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const authMiddleware = require("./middleware/authMiddleware");
 
 const SECRET_KEY = "codeandconquer_secret";
 
@@ -28,10 +27,30 @@ db.connect((err) => {
   }
 });
 
+/* ================= AUTH MIDDLEWARE ================= */
+
+const authMiddleware = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+
+  if (!authHeader) {
+    return res.status(403).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid Token" });
+  }
+};
+
 /* ================= TEST ROUTE ================= */
 
 app.get('/', (req, res) => {
-  res.send("🚀 Code & Conquer SaaS Running Successfully");
+  res.send("🚀 Server Running");
 });
 
 /* ================= REGISTER COLLEGE ================= */
@@ -42,7 +61,7 @@ app.post('/register-college', (req, res) => {
   const sql = "INSERT INTO tenants (college_name, email) VALUES (?, ?)";
 
   db.query(sql, [college_name, email], (err, result) => {
-    if (err) return res.status(500).send("Database Error");
+    if (err) return res.send(err);
     res.send("College Registered Successfully");
   });
 });
@@ -61,12 +80,12 @@ app.post('/register-admin', async (req, res) => {
     `;
 
     db.query(sql, [name, email, hashedPassword, tenant_id], (err, result) => {
-      if (err) return res.status(500).send(err);
+      if (err) return res.send(err);
       res.send("Admin Registered Successfully");
     });
 
   } catch (error) {
-    res.status(500).send(error);
+    res.send(error);
   }
 });
 
@@ -78,13 +97,13 @@ app.post('/login', (req, res) => {
   const sql = "SELECT * FROM users WHERE email = ?";
 
   db.query(sql, [email], async (err, results) => {
-    if (err) return res.status(500).send(err);
-    if (results.length === 0) return res.status(400).send("User not found");
+    if (err) return res.send(err);
+    if (results.length === 0) return res.send("User not found");
 
     const user = results[0];
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).send("Invalid password");
+    if (!isMatch) return res.send("Invalid password");
 
     const token = jwt.sign(
       { user_id: user.user_id, tenant_id: user.tenant_id, role: user.role },
@@ -96,22 +115,13 @@ app.post('/login', (req, res) => {
   });
 });
 
-/* ================= DASHBOARD (PROTECTED) ================= */
-
-app.get("/dashboard", authMiddleware, (req, res) => {
-  res.json({
-    message: "Welcome to Dashboard",
-    user: req.user
-  });
-});
-
-/* ================= ADD STUDENT (ADMIN ONLY) ================= */
+/* ================= ADD STUDENT ================= */
 
 app.post("/add-student", authMiddleware, (req, res) => {
 
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      message: "Access denied. Admins only."
+  if (!req.user || !req.user.tenant_id) {
+    return res.json({
+      message: "Tenant ID missing in token"
     });
   }
 
@@ -127,70 +137,46 @@ app.post("/add-student", authMiddleware, (req, res) => {
     sql,
     [name, email, course, year, attendance, fees_status, req.user.tenant_id],
     (err, result) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ message: "Database Error" });
-      }
 
-      res.json({ message: "Student added successfully" });
+      if (err) return res.send(err);
+
+      res.json({
+        message: "Student added successfully"
+      });
     }
   );
 });
-
-/* ================= GET STUDENTS (TENANT ISOLATED) ================= */
+/* ================= GET STUDENTS ================= */
 
 app.get("/students", authMiddleware, (req, res) => {
 
   const sql = "SELECT * FROM students WHERE tenant_id = ?";
 
   db.query(sql, [req.user.tenant_id], (err, results) => {
-    if (err){
-       console.error("❌ REAL ERROR:", err);
-    return res.status(500).json({ message: "Database Error" });
-    }
+    if (err) return res.send(err);
     res.json(results);
   });
 });
 
-/* ================= SERVER START ================= */
+/* ================= DELETE ================= */
+
 app.delete("/delete-student/:id", authMiddleware, (req, res) => {
-
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      message: "Access denied. Admins only."
-    });
-  }
-
-  const studentId = req.params.id;
 
   const sql = `
     DELETE FROM students 
     WHERE student_id=? AND tenant_id=?
   `;
 
-  db.query(
-    sql,
-    [studentId, req.user.tenant_id],
-    (err, result) => {
-      if (err) return res.status(500).json({ message: "Database Error" });
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
-      res.json({ message: "Student deleted successfully" });
-    }
-  );
+  db.query(sql, [req.params.id, req.user.tenant_id], (err, result) => {
+    if (err) return res.send(err);
+    res.send("Deleted");
+  });
 });
+
+/* ================= UPDATE ================= */
+
 app.put("/update-student/:id", authMiddleware, (req, res) => {
 
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      message: "Access denied. Admins only."
-    });
-  }
-
-  const studentId = req.params.id;
   const { name, email, course, year, attendance, fees_status } = req.body;
 
   const sql = `
@@ -201,18 +187,16 @@ app.put("/update-student/:id", authMiddleware, (req, res) => {
 
   db.query(
     sql,
-    [name, email, course, year, attendance, fees_status, studentId, req.user.tenant_id],
+    [name, email, course, year, attendance, fees_status, req.params.id, req.user.tenant_id],
     (err, result) => {
-      if (err) return res.status(500).json({ message: "Database Error" });
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ message: "Student not found" });
-      }
-
-      res.json({ message: "Student updated successfully" });
+      if (err) return res.send(err);
+      res.send("Updated");
     }
   );
 });
+
+/* ================= SERVER ================= */
+
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
