@@ -153,28 +153,36 @@ app.get("/students", authMiddleware, (req, res) => {
   const { search, course, year } = req.query;
 
   let sql = "SELECT * FROM students WHERE tenant_id = ?";
-  let values = [req.user.tenant_id];
+  let params = [req.user.tenant_id];
 
   // 🔎 Search by name
   if (search) {
     sql += " AND name LIKE ?";
-    values.push(`%${search}%`);
+    params.push(`%${search}%`);
   }
 
   // 🎯 Filter by course
   if (course) {
     sql += " AND course = ?";
-    values.push(course);
+    params.push(course);
   }
 
-  // 🎯 Filter by year
+  // 📅 Filter by year
   if (year) {
     sql += " AND year = ?";
-    values.push(year);
+    params.push(year);
   }
 
-  db.query(sql, values, (err, results) => {
-    if (err) return res.send(err);
+  console.log("FINAL SQL:", sql);        // 🔍 DEBUG
+  console.log("PARAMS:", params);        // 🔍 DEBUG
+
+  db.query(sql, params, (err, results) => {
+
+    if (err) {
+      console.error("❌ ERROR:", err);
+      return res.status(500).json({ message: "Database Error", error: err });
+    }
+
     res.json(results);
   });
 });
