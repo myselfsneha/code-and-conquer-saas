@@ -77,14 +77,16 @@ app.post('/login', (req, res) => {
 
   const sql = "SELECT * FROM users WHERE email = ?";
 
-  db.query(sql, [email], async (err, results) => {
+  db.query(sql, [email], (err, results) => {
     if (err) return res.status(500).send(err);
     if (results.length === 0) return res.status(400).send("User not found");
 
     const user = results[0];
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).send("Invalid password");
+    // ✅ SIMPLE PASSWORD CHECK (NO BCRYPT)
+    if (password !== user.password) {
+      return res.status(400).send("Invalid password");
+    }
 
     const token = jwt.sign(
       { user_id: user.user_id, tenant_id: user.tenant_id, role: user.role },
