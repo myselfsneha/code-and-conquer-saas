@@ -1,75 +1,119 @@
 // 🚀 Load students automatically
-window.onload = fetchStudents;
+window.onload = () => fetchStudents(1);
 
 /* =======================
    FETCH STUDENTS (SEARCH + FILTER)
 ======================= */
-async function fetchStudents() {
+let currentPage = 1;
+const limit = 5;
 
-    console.log("🔥 FETCH CALLED");
+async function fetchStudents(page = 1) {
+
+    console.log("✅ fetchStudents called");
+
+    // 🚨 FIX: prevent event issue
+    if (typeof page !== "number") {
+        page = 1;
+    }
+
+    currentPage = page;
 
     const token = localStorage.getItem("token");
 
-    if (!token) {
-        alert("No token found. Please login again.");
-        window.location.href = "login.html";
-        return;
-    }
-
-    const search = document.getElementById("search").value.trim();
+    const search = document.getElementById("search").value;
     const course = document.getElementById("course").value;
     const year = document.getElementById("year").value;
 
-    // ✅ Build URL properly
-    let url = "http://localhost:3000/students?";
+    let url = `http://localhost:3000/students?page=${page}&limit=${limit}`;
 
-    if (search) url += `search=${encodeURIComponent(search)}&`;
-    if (course) url += `course=${encodeURIComponent(course)}&`;
-    if (year) url += `year=${encodeURIComponent(year)}&`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (course) url += `&course=${course}`;
+    if (year) url += `&year=${year}`;
 
     console.log("🌐 URL:", url);
 
     try {
         const res = await fetch(url, {
-            method: "GET",
             headers: {
-                "Authorization": "Bearer " + token
+                "Authorization": `Bearer ${token}`
             }
         });
 
         const data = await res.json();
 
-        console.log("📦 RESPONSE:", data);
+        console.log("📦 DATA:", data);
 
-        let rows = "";
+        const students = data.students || data;
+        const total = data.total || students.length;
 
-        if (!Array.isArray(data) || data.length === 0) {
-            rows = `<tr><td colspan="6">No students found</td></tr>`;
-        } else {
-            data.forEach(student => {
-                rows += `
-                    <tr>
-                        <td>${student.student_id}</td>
-                        <td>${student.name}</td>
-                        <td>${student.email}</td>
-                        <td>${student.course || "-"}</td>
-                        <td>${student.year || "-"}</td>
-                        <td>
-                            <button onclick="deleteStudent(${student.student_id})">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
+        renderTable(students);
+        setupPagination(total);
 
-        document.getElementById("tableBody").innerHTML = rows;
-
-    } catch (error) {
-        console.error("❌ FETCH ERROR:", error);
-        alert("Something went wrong while fetching students");
+    } catch (err) {
+        console.error("❌ ERROR:", err);
     }
+}
+    
+function renderTable(students) {
+
+    console.log("🎯 RENDERING STUDENTS:", students);
+
+    const table = document.getElementById("tableBody");
+
+    if (!table) {
+        console.error("❌ tableBody not found in HTML");
+        return;
+    }
+
+    let rows = "";
+
+    if (students.length === 0) {
+        rows = `<tr><td colspan="6">No students found</td></tr>`;
+    } else {
+        students.forEach(student => {
+            rows += `
+                <tr>
+                    <td>${student.student_id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.course}</td>
+                    <td>${student.year}</td>
+                    <td>
+                        <button onclick="deleteStudent(${student.student_id})">🗑</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    console.log("🧱 FINAL ROWS:", rows);
+
+    table.innerHTML = rows;
+    
+}
+
+  function setupPagination(total) {
+
+    const totalPages = Math.ceil(total / limit);
+
+    if (totalPages <= 1) {
+        document.getElementById("pagination").innerHTML = "";
+        return;
+    }
+
+    let buttons = "";
+
+    if (currentPage > 1) {
+        buttons += `<button onclick="fetchStudents(${currentPage - 1})">◀ Prev</button>`;
+    }
+
+    buttons += ` <span>Page ${currentPage} of ${totalPages}</span> `;
+
+    if (currentPage < totalPages) {
+        buttons += `<button onclick="fetchStudents(${currentPage + 1})">Next ▶</button>`;
+    }
+
+    document.getElementById("pagination").innerHTML = buttons;
 }
 /* =======================
    ADD STUDENT
@@ -133,8 +177,7 @@ async function deleteStudent(id) {
             "Authorization": "Bearer " + token
         }
     });
-
-    fetchStudents();
+    fetchStudents(currentPage);
 }
 
 /* =======================

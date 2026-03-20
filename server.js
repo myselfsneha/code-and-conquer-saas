@@ -125,34 +125,54 @@ app.post('/login', (req, res) => {
 });
 /* ================= ADD STUDENT ================= */
 
-app.post("/add-student", authMiddleware, (req, res) => {
+app.get("/students", authMiddleware, (req, res) => {
 
-  if (!req.user || !req.user.tenant_id) {
-    return res.json({
-      message: "Tenant ID missing in token"
-    });
+  const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
+
+  const offset = (page - 1) * limit;
+
+  let sql = `SELECT * FROM students WHERE tenant_id = ?`;
+  let countSql = `SELECT COUNT(*) as total FROM students WHERE tenant_id = ?`;
+
+  let params = [req.user.tenant_id];
+  let countParams = [req.user.tenant_id];
+
+  if (search) {
+    sql += " AND name LIKE ?";
+    countSql += " AND name LIKE ?";
+    params.push(`%${search}%`);
+    countParams.push(`%${search}%`);
   }
 
-  const { name, email, course, year, attendance, fees_status } = req.body;
+  if (course) {
+    sql += " AND course = ?";
+    countSql += " AND course = ?";
+    params.push(course);
+    countParams.push(course);
+  }
 
-  const sql = `
-    INSERT INTO students 
-    (name, email, course, year, attendance, fees_status, tenant_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `;
+  if (year) {
+    sql += " AND year = ?";
+    countSql += " AND year = ?";
+    params.push(year);
+    countParams.push(year);
+  }
 
-  db.query(
-    sql,
-    [name, email, course, year, attendance, fees_status, req.user.tenant_id],
-    (err, result) => {
+  sql += " LIMIT ? OFFSET ?";
+  params.push(parseInt(limit), parseInt(offset));
 
-      if (err) return res.send(err);
+  db.query(countSql, countParams, (err, countResult) => {
+    if (err) return res.status(500).json({ message: "Count Error", err });
+
+    db.query(sql, params, (err, results) => {
+      if (err) return res.status(500).json({ message: "Database Error", err });
 
       res.json({
-        message: "Student added successfully"
+        students: results,
+        total: countResult[0].total
       });
-    }
-  );
+    });
+  });
 });
 /* ================= GET STUDENTS ================= */
 

@@ -42,7 +42,7 @@
         <option value="3">3</option>
     </select>
 
-    <button onclick="fetchStudents()">Search</button>
+    <button onclick="fetchStudents(1)">Search</button>
 
     <!-- TABLE -->
     <table border="1" width="100%">
@@ -58,7 +58,7 @@
         </thead>
         <tbody id="tableBody"></tbody>
     </table>
-
+<div id="pagination" style="margin-top:20px; text-align:center;"></div>
     <button onclick="addStudent()">
         <i class="fa-solid fa-plus"></i> Add Student
     </button>
