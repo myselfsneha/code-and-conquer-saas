@@ -1,5 +1,28 @@
+//role based UI
+function getUserRole() {
+    const token = localStorage.getItem("token");
+
+    if (!token) return null;
+
+    // Split token → get payload → decode
+    const payload = JSON.parse(atob(token.split('.')[1]));
+
+    return payload.role;
+}
+console.log("ROLE:", getUserRole());
+
 // 🚀 Load students automatically
-window.onload = () => fetchStudents(1);
+window.onload = () => {
+
+    fetchStudents(1); // load data first
+
+    const role = getUserRole();
+    console.log("ROLE:", role);
+
+    if (role !== "admin") {
+        hideAdminUI();
+    }
+};
 
 /* =======================
    FETCH STUDENTS (SEARCH + FILTER)
@@ -48,6 +71,11 @@ async function fetchStudents(page = 1) {
 
         renderTable(students);
         setupPagination(total);
+        
+        const role = getUserRole();
+        if (role !== "admin") {
+            hideAdminUI();
+        }
 
     } catch (err) {
         console.error("❌ ERROR:", err);
@@ -92,7 +120,21 @@ function renderTable(students) {
     
 }
 
-  function setupPagination(total) {
+function hideAdminUI() {
+
+    console.log("🚫 Hiding admin features");
+
+    // 🔴 Hide Add Student button
+    const addBtn = document.querySelector("button[onclick='addStudent()']");
+    if (addBtn) addBtn.style.display = "none";
+
+    // 🔴 Hide all Delete buttons
+    document.querySelectorAll("button[onclick^='deleteStudent']").forEach(btn => {
+        btn.style.display = "none";
+    });
+}
+
+function setupPagination(total) {
 
     const totalPages = Math.ceil(total / limit);
 

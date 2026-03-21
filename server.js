@@ -113,7 +113,6 @@ app.post('/login', (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid password" });
     }
-
     const token = jwt.sign(
       { user_id: user.user_id, tenant_id: user.tenant_id, role: user.role },
       SECRET_KEY,
@@ -122,11 +121,15 @@ app.post('/login', (req, res) => {
 
     res.json({ message: "Login successful", token });
   });
+ 
 });
 /* ================= ADD STUDENT ================= */
 
-app.get("/students", authMiddleware, (req, res) => {
-
+app.post("/add-students", authMiddleware, (req, res) => {
+  
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
   const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
 
   const offset = (page - 1) * limit;
@@ -215,7 +218,9 @@ app.get("/students", authMiddleware, (req, res) => {
 /* ================= DELETE ================= */
 
 app.delete("/delete-student/:id", authMiddleware, (req, res) => {
-
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
   const sql = `
     DELETE FROM students 
     WHERE student_id=? AND tenant_id=?
