@@ -1,20 +1,33 @@
-function login() {
+async function login() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
     const message = document.getElementById("message");
 
-    if (email === "" || password === "") {
-        message.innerText = "Please fill all fields";
-        return;
-    }
+    try {
+        const res = await fetch("http://localhost:3000/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+        });
 
-    if (email === "admin@gmail.com" && password === "admin123") {
-        localStorage.setItem("token", "fake-jwt-token");
+        const data = await res.json();
+
+        console.log("LOGIN RESPONSE:", data); // 🔍 DEBUG
+
+        if (!res.ok) {
+            message.innerText = data.message || "Login failed";
+            return;
+        }
+
+        localStorage.setItem("token", data.token);
         localStorage.setItem("email", email);
 
-        console.log("Token saved:", localStorage.getItem("token")); // 🔍 DEBUG
         window.location.href = "dashboard.html";
-    } else {
-        message.innerText = "Invalid email or password";
+
+    } catch (err) {
+        console.error("LOGIN ERROR:", err);
+        message.innerText = "Server error";
     }
 }

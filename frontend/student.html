@@ -6,56 +6,75 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<<<<<<< HEAD
-<div id="toast" class="toast">Student added successfully</div>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+
 <body>
 
-    <div class="navbar">
+<!-- Toast -->
+<div id="toast" class="toast">Student added successfully</div>
+
+<!-- Navbar -->
+<div class="navbar">
     <div class="logo">Code & Conquer</div>
 
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
-<<<<<<< HEAD
-        <a href="student.html">Students</a>
-=======
         <a href="students.html">Students</a>
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
         <a href="login.html" onclick="localStorage.clear()">Logout</a>
     </div>
 </div>
 
 <div class="login-container">
     <h2>Students List</h2>
-    <input type="text" id="search" placeholder="Search student..." onkeyup="searchStudent()">
 
+    <!-- 🔎 SEARCH + FILTER -->
+    <input type="text" id="search" placeholder="Search by name">
+
+    <select id="course">
+        <option value="">All Courses</option>
+        <option value="BCA">BCA</option>
+        <option value="BBA">BBA</option>
+    </select>
+
+    <select id="year">
+        <option value="">All Years</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+    </select>
+
+    <button onclick="fetchStudents(1)">Search</button>
+
+    <!-- TABLE -->
     <table border="1" width="100%">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Course</th>
+                <th>Year</th>
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody id="studentTable"></tbody>
+        <tbody id="tableBody"></tbody>
     </table>
-
+<div id="pagination" style="margin-top:20px; text-align:center;"></div>
     <button onclick="addStudent()">
-        <i class="fa-solid fa-plus"></i>Add Student</button>
+        <i class="fa-solid fa-plus"></i> Add Student
+    </button>
+
     <br><br>
+
     <button onclick="goBack()">
-         <i class="fa-solid fa-arrow-left"></i>Back to Dashboard</button>
-<<<<<<< HEAD
-         <button onclick="exportStudents()">
-    <i class="fa-solid fa-download"></i> Export Students
-</button>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+        <i class="fa-solid fa-arrow-left"></i> Back
+    </button>
+
+    <button onclick="exportStudents()">
+        <i class="fa-solid fa-download"></i> Export
+    </button>
 </div>
 
-<!-- Add Student Modal -->
+<!-- Modal -->
 <div class="modal" id="studentModal">
     <div class="modal-content">
         <h3>Add Student</h3>
@@ -67,18 +86,15 @@
             <i class="fa-solid fa-check"></i> Save
         </button>
 
-        <button class="close-btn" onclick="closeModal()">
-            Cancel
-        </button>
+        <button class="close-btn" onclick="closeModal()">Cancel</button>
     </div>
 </div>
 
 <script src="student.js"></script>
-<<<<<<< HEAD
+
 <footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi & Sneha</p>
+    <p>© 2026 Code & Conquer SaaS Platform</p>
 </footer>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+
 </body>
 </html>

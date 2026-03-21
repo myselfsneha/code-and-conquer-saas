@@ -1,57 +1,164 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const savedStudents = localStorage.getItem("students");
+//role based UI
+function getUserRole() {
+    const token = localStorage.getItem("token");
 
-    window.students = savedStudents
-        ? JSON.parse(savedStudents)
-        : [
-            { id: 1, name: "Amit Sharma", email: "amit@gmail.com" },
-            { id: 2, name: "Neha Verma", email: "neha@gmail.com" }
-        ];
+    if (!token) return null;
 
-    renderStudents();
-    updateStudentCount();
-});
+    // Split token → get payload → decode
+    const payload = JSON.parse(atob(token.split('.')[1]));
+
+    return payload.role;
+}
+console.log("ROLE:", getUserRole());
+
+// 🚀 Load students automatically
+window.onload = () => {
+
+    fetchStudents(1); // load data first
+
+    const role = getUserRole();
+    console.log("ROLE:", role);
+
+    if (role !== "admin") {
+        hideAdminUI();
+    }
+};
 
 /* =======================
-   RENDER STUDENTS TABLE
+   FETCH STUDENTS (SEARCH + FILTER)
 ======================= */
-function renderStudents() {
-    const table = document.getElementById("studentTable");
-<<<<<<< HEAD
-table.innerHTML = "";
+let currentPage = 1;
+const limit = 5;
 
-if(students.length === 0){
-    table.innerHTML = `
-        <tr>
-            <td colspan="4" style="text-align:center; padding:20px;">
-                No students added yet
-            </td>
-        </tr>
-    `;
-    return;
+async function fetchStudents(page = 1) {
+
+    console.log("✅ fetchStudents called");
+
+    // 🚨 FIX: prevent event issue
+    if (typeof page !== "number") {
+        page = 1;
+    }
+
+    currentPage = page;
+
+    const token = localStorage.getItem("token");
+
+    const search = document.getElementById("search").value;
+    const course = document.getElementById("course").value;
+    const year = document.getElementById("year").value;
+
+    let url = `http://localhost:3000/students?page=${page}&limit=${limit}`;
+
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (course) url += `&course=${course}`;
+    if (year) url += `&year=${year}`;
+
+    console.log("🌐 URL:", url);
+
+    try {
+        const res = await fetch(url, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const data = await res.json();
+
+        console.log("📦 DATA:", data);
+
+        const students = data.students || data;
+        const total = data.total || students.length;
+
+        renderTable(students);
+        setupPagination(total);
+        
+        const role = getUserRole();
+        if (role !== "admin") {
+            hideAdminUI();
+        }
+
+    } catch (err) {
+        console.error("❌ ERROR:", err);
+    }
 }
-=======
-    table.innerHTML = "";
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+    
+function renderTable(students) {
 
-    students.forEach((student, index) => {
-        table.innerHTML += `
-            <tr>
-                <td>${student.id}</td>
-                <td>${student.name}</td>
-                <td>${student.email}</td>
-                <td>
-                    <button onclick="deleteStudent(${index})" class="icon-btn">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
+    console.log("🎯 RENDERING STUDENTS:", students);
+
+    const table = document.getElementById("tableBody");
+
+    if (!table) {
+        console.error("❌ tableBody not found in HTML");
+        return;
+    }
+
+    let rows = "";
+
+    if (students.length === 0) {
+        rows = `<tr><td colspan="6">No students found</td></tr>`;
+    } else {
+        students.forEach(student => {
+            rows += `
+                <tr>
+                    <td>${student.student_id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.email}</td>
+                    <td>${student.course}</td>
+                    <td>${student.year}</td>
+                    <td>
+                        <button onclick="deleteStudent(${student.student_id})">🗑</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    console.log("🧱 FINAL ROWS:", rows);
+
+    table.innerHTML = rows;
+    
+}
+
+function hideAdminUI() {
+
+    console.log("🚫 Hiding admin features");
+
+    // 🔴 Hide Add Student button
+    const addBtn = document.querySelector("button[onclick='addStudent()']");
+    if (addBtn) addBtn.style.display = "none";
+
+    // 🔴 Hide all Delete buttons
+    document.querySelectorAll("button[onclick^='deleteStudent']").forEach(btn => {
+        btn.style.display = "none";
     });
 }
 
+function setupPagination(total) {
+
+    const totalPages = Math.ceil(total / limit);
+
+    if (totalPages <= 1) {
+        document.getElementById("pagination").innerHTML = "";
+        return;
+    }
+
+    let buttons = "";
+
+    if (currentPage > 1) {
+        buttons += `<button onclick="fetchStudents(${currentPage - 1})">◀ Prev</button>`;
+    }
+
+    buttons += ` <span>Page ${currentPage} of ${totalPages}</span> `;
+
+    if (currentPage < totalPages) {
+        buttons += `<button onclick="fetchStudents(${currentPage + 1})">Next ▶</button>`;
+    }
+
+    document.getElementById("pagination").innerHTML = buttons;
+}
 /* =======================
-   ADD STUDENT (MODAL)
+   ADD STUDENT
 ======================= */
 function addStudent() {
     document.getElementById("studentModal").style.display = "flex";
@@ -61,116 +168,100 @@ function closeModal() {
     document.getElementById("studentModal").style.display = "none";
 }
 
-function saveStudent() {
-    const name = document.getElementById("studentName").value.trim();
-    const email = document.getElementById("studentEmail").value.trim();
+async function saveStudent() {
+
+    const token = localStorage.getItem("token");
+
+    const name = document.getElementById("studentName").value;
+    const email = document.getElementById("studentEmail").value;
 
     if (!name || !email) {
         alert("Please fill all fields");
         return;
     }
 
-    students.push({
-        id: students.length + 1,
-        name: name,
-        email: email
+    const res = await fetch("http://localhost:3000/add-student", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            name,
+            email,
+            course: "BCA",
+            year: 1,
+            attendance: 80,
+            fees_status: "Paid"
+        })
     });
 
-    // ✅ SAVE TO LOCAL STORAGE
-    localStorage.setItem("students", JSON.stringify(students));
-    updateStudentCount();
+    const data = await res.json();
 
-    closeModal();
-    renderStudents();
-<<<<<<< HEAD
     showToast();
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
-
-    document.getElementById("studentName").value = "";
-    document.getElementById("studentEmail").value = "";
+    closeModal();
+    fetchStudents();
 }
 
 /* =======================
    DELETE STUDENT
 ======================= */
-function deleteStudent(index) {
-<<<<<<< HEAD
+async function deleteStudent(id) {
 
-    const confirmDelete = confirm("Are you sure you want to delete this student?");
+    const token = localStorage.getItem("token");
 
-    if(confirmDelete){
-        students.splice(index, 1);
+    const confirmDelete = confirm("Are you sure?");
+    if (!confirmDelete) return;
 
-        localStorage.setItem("students", JSON.stringify(students));
-
-        renderStudents();
-        updateStudentCount();
-    }
-
-=======
-    students.splice(index, 1);
-    localStorage.setItem("students", JSON.stringify(students));
-    renderStudents();
-    updateStudentCount();
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+    await fetch(`http://localhost:3000/delete-student/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+    fetchStudents(currentPage);
 }
 
 /* =======================
-   SEARCH STUDENT
+   EXPORT CSV
 ======================= */
-function searchStudent() {
-    const input = document.getElementById("search").value.toLowerCase();
-    const rows = document.querySelectorAll("#studentTable tr");
+function exportStudents() {
+
+    const rows = document.querySelectorAll("#tableBody tr");
+
+    let csv = "ID,Name,Email,Course,Year\n";
 
     rows.forEach(row => {
-        row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
-    });
-}
-
-/* =======================
-   DASHBOARD COUNT SYNC
-======================= */
-function updateStudentCount() {
-    localStorage.setItem("studentsCount", students.length);
-}
-
-/* =======================
-   BACK TO DASHBOARD
-======================= */
-function goBack() {
-    window.location.href = "dashboard.html";
-<<<<<<< HEAD
-}
-function exportStudents(){
-
-    let csv = "ID,Name,Email\n";
-
-    students.forEach(student=>{
-        csv += `${student.id},${student.name},${student.email}\n`;
+        const cols = row.querySelectorAll("td");
+        if (cols.length > 0) {
+            csv += `${cols[0].innerText},${cols[1].innerText},${cols[2].innerText},${cols[3].innerText},${cols[4].innerText}\n`;
+        }
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
-
     const url = window.URL.createObjectURL(blob);
 
     const a = document.createElement("a");
-
     a.href = url;
-
     a.download = "students.csv";
-
     a.click();
-
 }
-function showToast(){
-    const toast = document.getElementById("toast");
 
+/* =======================
+   TOAST
+======================= */
+function showToast() {
+    const toast = document.getElementById("toast");
     toast.classList.add("show");
 
-    setTimeout(()=>{
+    setTimeout(() => {
         toast.classList.remove("show");
-    },3000);
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+    }, 3000);
+}
+
+/* =======================
+   BACK
+======================= */
+function goBack() {
+    window.location.href = "dashboard.html";
 }
