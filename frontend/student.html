@@ -62,6 +62,8 @@
                 <th>Email</th>
                 <th>Course</th>
                 <th>Year</th>
+                <th>Fees Paid</th>
+                <th>Attendance %</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -113,6 +115,16 @@
             Cancel
         </button>
     </div>
+</div>
+
+<!-- ================= FEES MODAL ================= -->
+<div class="modal" id="feesModal">
+  <div class="modal-content">
+    <h3>Add Fees</h3>
+    <input type="number" id="feesAmount" placeholder="Enter Amount">
+    <button onclick="submitFees()">Submit</button>
+    <button class="close-btn" onclick="closeFeesModal()">Cancel</button>
+  </div>
 </div>
 
 <!-- JS -->

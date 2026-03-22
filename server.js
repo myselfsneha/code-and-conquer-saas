@@ -10,7 +10,7 @@ const SECRET_KEY = "codeandconquer_secret";
 app.use(express.json());
 app.use(cors());
 
-/* ================= DATABASE CONNECTION ================= */
+/* ================= DATABASE ================= */
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -19,15 +19,12 @@ const db = mysql.createConnection({
   database: 'saas_student'
 });
 
-db.connect((err) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-  } else {
-    console.log("Connected to MySQL database");
-  }
+db.connect(err => {
+  if (err) console.error("DB Error:", err);
+  else console.log("✅ MySQL Connected");
 });
 
-/* ================= AUTH MIDDLEWARE ================= */
+/* ================= AUTH ================= */
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -42,51 +39,46 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded;
     next();
-  } catch (err) {
-    return res.status(401).json({ message: "Invalid Token" });
+  } catch {
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
-/* ================= TEST ROUTE ================= */
+/* ================= ROOT ================= */
 
 app.get('/', (req, res) => {
   res.send("🚀 Server Running");
 });
 
-/* ================= REGISTER COLLEGE ================= */
+/* ================= REGISTER ================= */
 
 app.post('/register-college', (req, res) => {
   const { college_name, email } = req.body;
 
-  const sql = "INSERT INTO tenants (college_name, email) VALUES (?, ?)";
-
-  db.query(sql, [college_name, email], (err, result) => {
-    if (err) return res.send(err);
-    res.send("College Registered Successfully");
-  });
+  db.query(
+    "INSERT INTO tenants (college_name, email) VALUES (?, ?)",
+    [college_name, email],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "College Registered" });
+    }
+  );
 });
-
-/* ================= REGISTER ADMIN ================= */
 
 app.post('/register-admin', async (req, res) => {
   const { name, email, password, tenant_id } = req.body;
 
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, 10);
 
-    const sql = `
-      INSERT INTO users (name, email, password, role, tenant_id)
-      VALUES (?, ?, ?, 'admin', ?)
-    `;
-
-    db.query(sql, [name, email, hashedPassword, tenant_id], (err, result) => {
-      if (err) return res.send(err);
-      res.send("Admin Registered Successfully");
-    });
-
-  } catch (error) {
-    res.send(error);
-  }
+  db.query(
+    `INSERT INTO users (name, email, password, role, tenant_id)
+     VALUES (?, ?, ?, 'admin', ?)`,
+    [name, email, hashed, tenant_id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Admin Registered" });
+    }
+  );
 });
 
 /* ================= LOGIN ================= */
@@ -94,196 +86,291 @@ app.post('/register-admin', async (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ?";
+  db.query("SELECT * FROM users WHERE email=?", [email], async (err, results) => {
 
-  db.query(sql, [email], async (err, results) => {
-
-    if (err) {
-      return res.status(500).json({ message: "Database Error", error: err });
-    }
-
-    if (results.length === 0) {
-      return res.status(400).json({ message: "User not found" });
-    }
+    if (err) return res.status(500).json(err);
+    if (results.length === 0) return res.status(400).json({ message: "User not found" });
 
     const user = results[0];
+    const match = await bcrypt.compare(password, user.password);
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(400).json({ message: "Invalid password" });
 
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
     const token = jwt.sign(
       { user_id: user.user_id, tenant_id: user.tenant_id, role: user.role },
       SECRET_KEY,
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login successful", token });
-  });
- 
-});
-/* ================= ADD STUDENT ================= */
-app.post("/students", authMiddleware, (req, res) => {
-
-  // 🔐 Role check (Admin only)
-  if (req.user.role !== "admin") {
-    return res.status(403).json({ message: "Access denied" });
-  }
-
-  const { name, email, course, year } = req.body;
-
-  // ✅ Validation
-  if (!name || !email || !course || !year) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  const sql = `
-    INSERT INTO students (name, email, course, year, tenant_id)
-    VALUES (?, ?, ?, ?, ?)
-  `;
-
-  const params = [name, email, course, year, req.user.tenant_id];
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      console.error("ADD ERROR:", err);
-      return res.status(500).json({ message: "Database Error", error: err });
-    }
-
-    res.json({ message: "Student added successfully" });
+    res.json({ token });
   });
 });
-/* ================= GET STUDENTS ================= */
+
+/* ================= STUDENTS ================= */
+
 app.get("/students", authMiddleware, (req, res) => {
 
   const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
-
   const offset = (page - 1) * limit;
 
-  let sql = `SELECT * FROM students WHERE tenant_id = ?`;
-  let countSql = `SELECT COUNT(*) as total FROM students WHERE tenant_id = ?`;
+  let baseQuery = `
+    FROM students s
+    LEFT JOIN (
+      SELECT student_id, SUM(amount_paid) AS total_paid
+      FROM fees
+      WHERE tenant_id = ?
+      GROUP BY student_id
+    ) f ON s.student_id = f.student_id
 
-  let params = [req.user.tenant_id];
+    LEFT JOIN (
+      SELECT student_id,
+             SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) AS present_days,
+             COUNT(*) AS total_days
+      FROM attendance
+      WHERE tenant_id = ?
+      GROUP BY student_id
+    ) a ON s.student_id = a.student_id
+
+    WHERE s.tenant_id = ?
+  `;
+
+  let params = [req.user.tenant_id,req.user.tenant_id,req.user.tenant_id];
   let countParams = [req.user.tenant_id];
 
   if (search) {
-    sql += " AND LOWER(name) LIKE ?";
-    countSql += " AND LOWER(name) LIKE ?";
+    baseQuery += " AND LOWER(s.name) LIKE ?";
     params.push(`%${search.toLowerCase()}%`);
     countParams.push(`%${search.toLowerCase()}%`);
   }
 
   if (course) {
-    sql += " AND LOWER(course) = ?";
-    countSql += " AND LOWER(course) = ?";
+    baseQuery += " AND LOWER(s.course) = ?";
     params.push(course.toLowerCase());
     countParams.push(course.toLowerCase());
   }
 
   if (year) {
-    sql += " AND year = ?";
-    countSql += " AND year = ?";
+    baseQuery += " AND s.year = ?";
     params.push(parseInt(year));
     countParams.push(parseInt(year));
   }
 
-  sql += " LIMIT ? OFFSET ?";
+  // 🔥 FINAL QUERY WITH AGGREGATION
+  const dataQuery = `
+    SELECT 
+      s.*,
+      COALESCE(f.total_paid, 0) AS total_paid,
+      COALESCE(a.present_days, 0) AS present_days,
+      COALESCE(a.total_days, 0) AS total_days,
+      CASE 
+        WHEN a.total_days > 0 
+        THEN ROUND((a.present_days / a.total_days) * 100, 2)
+        ELSE 0 
+      END AS attendance_percentage
+    ${baseQuery}
+    LIMIT ? OFFSET ?
+  `;
+
   params.push(parseInt(limit), parseInt(offset));
 
-  db.query(countSql, countParams, (err, countResult) => {
-    if (err) {
-      return res.status(500).json({ message: "Count Error", error: err });
-    }
+  const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
 
-    db.query(sql, params, (err, results) => {
-      if (err) {
-        return res.status(500).json({ message: "Database Error", error: err });
-      }
+  db.query(countQuery, countParams, (err, countRes) => {
+    if (err) return res.status(500).json(err);
+
+    db.query(dataQuery, params, (err, results) => {
+      if (err) return res.status(500).json(err);
 
       res.json({
         students: results,
-        total: countResult[0].total,
-        page: parseInt(page),
-        limit: parseInt(limit)
+        total: countRes[0].total
       });
     });
   });
 });
-/* ================= DELETE ================= */
+/* ================= ADD STUDENT ================= */
 
-app.delete("/delete-student/:id", authMiddleware, (req, res) => {
+app.post("/students", authMiddleware, (req, res) => {
+
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied" });
   }
-  const sql = `
-    DELETE FROM students 
-    WHERE student_id=? AND tenant_id=?
-  `;
 
-  db.query(sql, [req.params.id, req.user.tenant_id], (err, result) => {
-    if (err) return res.send(err);
-    res.send("Deleted");
-  });
-});
+  const { name, email, course, year, fees_total } = req.body;
 
-/* ================= UPDATE ================= */
-
-app.put("/update-student/:id", authMiddleware, (req, res) => {
-
-  const { name, email, course, year, attendance, fees_status } = req.body;
-
-  const sql = `
-    UPDATE students 
-    SET name=?, email=?, course=?, year=?, attendance=?, fees_status=?
-    WHERE student_id=? AND tenant_id=?
-  `;
+  if (!name || !email || !course || !year) {
+    return res.status(400).json({ message: "All fields required" });
+  }
 
   db.query(
-    sql,
-    [name, email, course, year, attendance, fees_status, req.params.id, req.user.tenant_id],
-    (err, result) => {
-      if (err) return res.send(err);
-      res.send("Updated");
+    `INSERT INTO students (name, email, course, year, fees_total, tenant_id)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+     [name, email, course, year, fees_total || 0, req.user.tenant_id],
+    err => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Student added" });
     }
   );
 });
-/* ================DASHBOARD================== */
+
+/* ================= DELETE ================= */
+
+app.delete("/delete-student/:id", authMiddleware, (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  db.query(
+    "DELETE FROM students WHERE student_id=? AND tenant_id=?",
+    [req.params.id, req.user.tenant_id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Deleted" });
+    }
+  );
+});
+
+/* ================= FEES ================= */
+
+app.post("/add-fees", authMiddleware, (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { student_id, amount_paid } = req.body;
+
+  if (!student_id || !amount_paid) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+
+  db.query(
+    `INSERT INTO fees (student_id, tenant_id, amount_paid, date, status)
+     VALUES (?, ?, ?, CURDATE(), 'paid')`,
+    [student_id, req.user.tenant_id, amount_paid],
+    (err) => {
+      if (err) {
+        console.error("FEES ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      res.json({ message: "Fees added successfully" });
+    }
+  );
+});
+
+app.get("/fees-summary", authMiddleware, (req, res) => {
+
+  db.query(
+    `SELECT 
+        s.student_id, 
+        s.name, 
+        s.fees_total,
+        IFNULL(SUM(f.amount_paid), 0) AS total_paid
+     FROM students s
+     LEFT JOIN fees f 
+        ON s.student_id = f.student_id 
+        AND f.tenant_id = s.tenant_id
+     WHERE s.tenant_id = ?
+     GROUP BY s.student_id`,
+    [req.user.tenant_id],
+    (err, results) => {
+      if (err) {
+        console.error("FEES SUMMARY ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      res.json(results);
+    }
+  );
+});
+/* ================= ATTENDANCE ================= */
+
+app.post("/mark-attendance", authMiddleware, (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { student_id, status } = req.body;
+
+  if (!student_id || !status) {
+    return res.status(400).json({ message: "Missing fields" });
+  }
+
+  db.query(
+    `INSERT INTO attendance (student_id, tenant_id, date, status)
+     VALUES (?, ?, CURDATE(), ?)`,
+    [student_id, req.user.tenant_id, status],
+    (err) => {
+      if (err) {
+        console.error("ATTENDANCE ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      res.json({ message: "Attendance marked successfully" });
+    }
+  );
+});
+
+app.get("/attendance-summary", authMiddleware, (req, res) => {
+
+  db.query(
+    `SELECT 
+        student_id,
+        COUNT(*) AS total_days,
+        SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) AS present_days
+     FROM attendance
+     WHERE tenant_id = ?
+     GROUP BY student_id`,
+    [req.user.tenant_id],
+    (err, results) => {
+      if (err) {
+        console.error("ATTENDANCE SUMMARY ERROR:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
+
+      // ✅ ADD % CALCULATION HERE
+      const updated = results.map(r => ({
+        ...r,
+        attendance_percent: r.total_days > 0 
+          ? Math.round((r.present_days / r.total_days) * 100)
+          : 0
+      }));
+
+      res.json(updated);
+    }
+  );
+});
+/* ================= DASHBOARD ================= */
 
 app.get("/dashboard-stats", authMiddleware, (req, res) => {
 
   const tenantId = req.user.tenant_id;
 
-  // Total Students
-  const totalQuery = "SELECT COUNT(*) AS total FROM students WHERE tenant_id = ?";
+  db.query(
+    "SELECT COUNT(*) as total FROM students WHERE tenant_id=?",
+    [tenantId],
+    (err, totalRes) => {
 
-  // Students per Course
-  const courseQuery = "SELECT course, COUNT(*) AS count FROM students WHERE tenant_id = ? GROUP BY course";
+      db.query(
+        "SELECT course, COUNT(*) as count FROM students WHERE tenant_id=? GROUP BY course",
+        [tenantId],
+        (err, courseRes) => {
 
-  // Students per Year
-  const yearQuery = "SELECT year, COUNT(*) AS count FROM students WHERE tenant_id = ? GROUP BY year";
-
-  db.query(totalQuery, [tenantId], (err, totalResult) => {
-    if (err) return res.status(500).json(err);
-
-    db.query(courseQuery, [tenantId], (err, courseResult) => {
-      if (err) return res.status(500).json(err);
-
-      db.query(yearQuery, [tenantId], (err, yearResult) => {
-        if (err) return res.status(500).json(err);
-
-        res.json({
-          total: totalResult[0].total,
-          courseData: courseResult,
-          yearData: yearResult
-        });
-      });
-    });
-  });
+          res.json({
+            total: totalRes[0].total,
+            courseData: courseRes
+          });
+        }
+      );
+    }
+  );
 });
 
 /* ================= SERVER ================= */
 
 app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+  console.log("🚀 Server running on http://localhost:3000");
 });

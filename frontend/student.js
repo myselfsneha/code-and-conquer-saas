@@ -3,6 +3,7 @@
 // =======================
 let currentPage = 1;
 const limit = 5;
+let selectedStudent = null;
 
 // =======================
 // ROLE BASED UI
@@ -46,7 +47,6 @@ async function fetchStudents(page = 1) {
 
     const token = localStorage.getItem("token");
 
-    // Safe DOM access
     const searchEl = document.getElementById("search");
     const courseEl = document.getElementById("filterCourse");
     const yearEl = document.getElementById("filterYear");
@@ -66,8 +66,6 @@ async function fetchStudents(page = 1) {
     if (course) url += `&course=${course}`;
     if (year) url += `&year=${year}`;
 
-    console.log("🌐 Fetching:", url);
-
     try {
         const res = await fetch(url, {
             headers: {
@@ -76,8 +74,6 @@ async function fetchStudents(page = 1) {
         });
 
         const data = await res.json();
-
-        console.log("📦 DATA:", data);
 
         const students = data.students || data;
         const total = data.total || students.length;
@@ -101,9 +97,22 @@ function renderTable(students) {
     let rows = "";
 
     if (!students || students.length === 0) {
-        rows = `<tr><td colspan="6">No students found</td></tr>`;
+        rows = `<tr><td colspan="8">No students found</td></tr>`;
     } else {
         students.forEach(student => {
+
+            // ✅ Fees display
+            let feesStatus = "Pending";
+            if (student.total_paid >= student.fees_total) {
+                feesStatus = "Paid ✅";
+            } else if (student.total_paid > 0) {
+                feesStatus = `Partial (₹${student.total_paid})`;
+            }
+
+            // ✅ Attendance display
+            let attendancePercent = student.attendance_percent || 0;
+            let attendanceDisplay = `${attendancePercent}%`;
+
             rows += `
                 <tr>
                     <td>${student.student_id}</td>
@@ -111,7 +120,21 @@ function renderTable(students) {
                     <td>${student.email}</td>
                     <td>${student.course}</td>
                     <td>${student.year}</td>
+
+                    <!-- 💰 FEES COLUMN -->
                     <td>
+                        ${feesStatus}
+                    </td>
+
+                    <!-- 📅 ATTENDANCE COLUMN -->
+                    <td>
+                        ${attendanceDisplay}
+                    </td>
+
+                    <!-- ACTIONS -->
+                    <td>
+                        <button onclick="openFeesModal(${student.student_id})">💰</button>
+                        <button onclick="markAttendance(${student.student_id})">📅</button>
                         <button onclick="deleteStudent(${student.student_id})">🗑</button>
                     </td>
                 </tr>
@@ -121,12 +144,11 @@ function renderTable(students) {
 
     table.innerHTML = rows;
 
-    // Apply role-based UI again after render
+    // Role check
     if (getUserRole() !== "admin") {
         hideAdminUI();
     }
 }
-
 // =======================
 // PAGINATION
 // =======================
@@ -162,13 +184,11 @@ function setupPagination(total) {
 // =======================
 function hideAdminUI() {
 
-    console.log("🚫 Restricting UI for non-admin");
+    console.log("🚫 Restricting UI");
 
-    // Hide Add button
     const addBtn = document.querySelector("button[onclick='openModal()']");
     if (addBtn) addBtn.style.display = "none";
 
-    // Hide delete buttons
     document.querySelectorAll("button[onclick^='deleteStudent']").forEach(btn => {
         btn.style.display = "none";
     });
@@ -190,15 +210,15 @@ function closeModal() {
 // =======================
 async function addStudent() {
 
-    const name = document.getElementById("studentName").value;
-    const email = document.getElementById("studentEmail").value;
-    const course = document.getElementById("studentCourse").value;
-    const year = document.getElementById("studentYear").value;
+    const name = document.getElementById("studentName")?.value;
+    const email = document.getElementById("studentEmail")?.value;
+    const course = document.getElementById("studentCourse")?.value;
+    const year = document.getElementById("studentYear")?.value;
 
     const token = localStorage.getItem("token");
 
     if (!name || !email || !course || !year) {
-        alert("All fields are required");
+        alert("All fields required");
         return;
     }
 
@@ -215,7 +235,7 @@ async function addStudent() {
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.message || "Error adding student");
+            alert(data.message);
             return;
         }
 
@@ -223,40 +243,94 @@ async function addStudent() {
         closeModal();
         fetchStudents(1);
 
-        // Clear fields
-        document.getElementById("studentName").value = "";
-        document.getElementById("studentEmail").value = "";
-        document.getElementById("studentCourse").value = "";
-        document.getElementById("studentYear").value = "";
-
     } catch (err) {
-        console.error("❌ Add Error:", err);
-        alert("Server error");
+        console.error(err);
     }
 }
 
 // =======================
-// DELETE STUDENT
+// DELETE
 // =======================
 async function deleteStudent(id) {
 
     const token = localStorage.getItem("token");
 
-    const confirmDelete = confirm("Are you sure?");
-    if (!confirmDelete) return;
+    if (!confirm("Delete student?")) return;
+
+    await fetch(`http://localhost:3000/delete-student/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: "Bearer " + token }
+    });
+
+    fetchStudents(currentPage);
+}
+
+// =======================
+// FEES FUNCTIONS
+// =======================
+function openFeesModal(id) {
+    selectedStudent = id;
+    document.getElementById("feesModal").style.display = "flex";
+}
+
+function closeFeesModal() {
+    document.getElementById("feesModal").style.display = "none";
+}
+
+async function submitFees() {
+
+    const amount = document.getElementById("feesAmount")?.value;
+    const token = localStorage.getItem("token");
+
+    if (!amount) {
+        alert("Enter amount");
+        return;
+    }
 
     try {
-        await fetch(`http://localhost:3000/delete-student/${id}`, {
-            method: "DELETE",
+        await fetch("http://localhost:3000/add-fees", {
+            method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Authorization": "Bearer " + token
-            }
+            },
+            body: JSON.stringify({
+                student_id: selectedStudent,
+                amount_paid: amount
+            })
         });
 
-        fetchStudents(currentPage);
+        alert("Fees added");
+        closeFeesModal();
 
     } catch (err) {
-        console.error("❌ Delete Error:", err);
+        console.error(err);
+    }
+}
+
+// =======================
+// ATTENDANCE
+// =======================
+async function markAttendance(id) {
+
+    const token = localStorage.getItem("token");
+
+    const status = confirm("Mark Present?") ? "present" : "absent";
+
+    try {
+        await fetch("http://localhost:3000/mark-attendance", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ student_id: id, status })
+        });
+
+        alert("Attendance marked");
+
+    } catch (err) {
+        console.error(err);
     }
 }
 
@@ -276,8 +350,8 @@ function exportStudents() {
         }
     });
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
+    const blob = new Blob([csv]);
+    const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
