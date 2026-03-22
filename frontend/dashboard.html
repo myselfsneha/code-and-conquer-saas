@@ -3,86 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+
     <link rel="stylesheet" href="style.css">
+
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<<<<<<< HEAD
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
 </head>
+
 <body>
 
-    <div class="navbar">
+<!-- NAVBAR -->
+<div class="navbar">
     <div class="logo">Code & Conquer</div>
 
     <div class="nav-links">
         <a href="dashboard.html">Dashboard</a>
         <a href="student.html">Students</a>
         <a href="login.html" onclick="localStorage.clear()">Logout</a>
-<<<<<<< HEAD
+
+        <!-- Dark Mode Button -->
         <button onclick="toggleDarkMode()" class="dark-btn">
-    <i class="fa-solid fa-moon"></i>
-    <i class="fa-solid fa-user-circle profile-icon"></i>
-</button>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+            <i class="fa-solid fa-moon"></i>
+            <i class="fa-solid fa-user-circle profile-icon"></i>
+        </button>
     </div>
 </div>
 
+<!-- MAIN CONTENT -->
 <div class="login-container">
-<<<<<<< HEAD
+
     <h2>Admin Dashboard 🚀</h2>
-=======
-    <h2>Admin Dashboard</h2>
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
-    <p id="welcome">Welcome, Admin 👋</p>
-    <div class="cards">
-    <div class="card">
-        <h3><i class="fa-solid fa-users"></i>Students</h3>
-        <p id="studentCount">0</p>
+    <p id="welcome">Welcome 👋</p>
+
+    <!-- CARDS -->
+    <div class="kpi-container">
+
+    <div class="kpi-card students">
+        <i class="fa-solid fa-users"></i>
+        <div>
+            <h4>Total Students</h4>
+            <p id="studentCount">0</p>
+        </div>
     </div>
 
-    <div class="card">
-        <h3><i class="fa-solid fa-building"></i>Tenants</h3>
-        <p id="tenantCount">0</p>
+    <div class="kpi-card courses">
+        <i class="fa-solid fa-book"></i>
+        <div>
+            <h4>Total Courses</h4>
+            <p id="courseCount">0</p>
+        </div>
     </div>
 
-    <div class="card">
-         <h3><i class="fa-solid fa-book"></i> Courses</h3>
-         <p id="courseCount">0</p>
+    <div class="kpi-card tenants">
+        <i class="fa-solid fa-building"></i>
+        <div>
+            <h4>Total Tenants</h4>
+            <p id="tenantCount">0</p>
+        </div>
     </div>
-</div>
-<<<<<<< HEAD
-<div class="chart-container">
-    <canvas id="dashboardChart"></canvas>
-</div>
-=======
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
-     
-<button class = "dashboard-btn" onclick="window.location.href='student.html'">
-      <i class="fa-solid fa-user-graduate"></i> Manage Students
-</button>
 
-<button onclick="window.location.href='tenants.html'">
-    Manage Tenants
-</button>
-<br><br>
-<button onclick="window.location.href='courses.html'">
-    Manage Courses
-</button>
-<br><br>
-<button onclick="logout()">
-       <i class="fa-solid fa-right-from-bracket"></i><Logout
+    <div class="kpi-card active">
+        <i class="fa-solid fa-user-check"></i>
+        <div>
+            <h4>Active Users</h4>
+            <p id="activeUsers">0</p>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-container">
+        <canvas id="dashboardChart"></canvas>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <button class="dashboard-btn" onclick="window.location.href='student.html'">
+        <i class="fa-solid fa-user-graduate"></i> Manage Students
     </button>
+
+    <button onclick="window.location.href='tenants.html'">
+        Manage Tenants
+    </button>
+
+    <br><br>
+
+    <button onclick="window.location.href='courses.html'">
+        Manage Courses
+    </button>
+
+    <br><br>
+
+    <button onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </button>
+
 </div>
 
+<!-- JS -->
 <script src="dashboard.js"></script>
-<<<<<<< HEAD
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi & Sneha</p>
-</footer>
-=======
 
->>>>>>> 0c26c18dec525a708e8b8955a3f28bbde96b87ca
+<!-- FOOTER -->
+<footer class="footer">
+    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi ,shivani & Sneha</p>
+</footer>
+
 </body>
 </html>
