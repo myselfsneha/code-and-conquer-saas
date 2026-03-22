@@ -124,12 +124,39 @@ app.post('/login', (req, res) => {
  
 });
 /* ================= ADD STUDENT ================= */
+app.post("/students", authMiddleware, (req, res) => {
 
-app.post("/add-students", authMiddleware, (req, res) => {
-  
+  // 🔐 Role check (Admin only)
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied" });
   }
+
+  const { name, email, course, year } = req.body;
+
+  // ✅ Validation
+  if (!name || !email || !course || !year) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const sql = `
+    INSERT INTO students (name, email, course, year, tenant_id)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  const params = [name, email, course, year, req.user.tenant_id];
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("ADD ERROR:", err);
+      return res.status(500).json({ message: "Database Error", error: err });
+    }
+
+    res.json({ message: "Student added successfully" });
+  });
+});
+/* ================= GET STUDENTS ================= */
+app.get("/students", authMiddleware, (req, res) => {
+
   const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
 
   const offset = (page - 1) * limit;
@@ -141,78 +168,46 @@ app.post("/add-students", authMiddleware, (req, res) => {
   let countParams = [req.user.tenant_id];
 
   if (search) {
-    sql += " AND name LIKE ?";
-    countSql += " AND name LIKE ?";
-    params.push(`%${search}%`);
-    countParams.push(`%${search}%`);
+    sql += " AND LOWER(name) LIKE ?";
+    countSql += " AND LOWER(name) LIKE ?";
+    params.push(`%${search.toLowerCase()}%`);
+    countParams.push(`%${search.toLowerCase()}%`);
   }
 
   if (course) {
-    sql += " AND course = ?";
-    countSql += " AND course = ?";
-    params.push(course);
-    countParams.push(course);
+    sql += " AND LOWER(course) = ?";
+    countSql += " AND LOWER(course) = ?";
+    params.push(course.toLowerCase());
+    countParams.push(course.toLowerCase());
   }
 
   if (year) {
     sql += " AND year = ?";
     countSql += " AND year = ?";
-    params.push(year);
-    countParams.push(year);
+    params.push(parseInt(year));
+    countParams.push(parseInt(year));
   }
 
   sql += " LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
 
   db.query(countSql, countParams, (err, countResult) => {
-    if (err) return res.status(500).json({ message: "Count Error", err });
+    if (err) {
+      return res.status(500).json({ message: "Count Error", error: err });
+    }
 
     db.query(sql, params, (err, results) => {
-      if (err) return res.status(500).json({ message: "Database Error", err });
+      if (err) {
+        return res.status(500).json({ message: "Database Error", error: err });
+      }
 
       res.json({
         students: results,
-        total: countResult[0].total
+        total: countResult[0].total,
+        page: parseInt(page),
+        limit: parseInt(limit)
       });
     });
-  });
-});
-/* ================= GET STUDENTS ================= */
-
-app.get("/students", authMiddleware, (req, res) => {
-
-  const { search, course, year } = req.query;
-
-  let sql = "SELECT * FROM students WHERE tenant_id = ?";
-  let params = [req.user.tenant_id];
-
-  if (search) {
-    sql += " AND LOWER(name) LIKE ?";
-    params.push(`%${search.toLowerCase()}%`);
-  }
-
-  if (course) {
-    sql += " AND LOWER(course) = ?";
-    params.push(course.toLowerCase());
-  }
-
-  if (year) {
-    sql += " AND year = ?";
-    params.push(parseInt(year));
-  }
-
-  console.log("QUERY:", req.query);
-  console.log("SQL:", sql);
-  console.log("PARAMS:", params);
-
-  db.query(sql, params, (err, results) => {
-    if (err) {
-      console.error("ERROR:", err);
-      return res.status(500).json({ message: "Database Error", error: err });
-    }
-
-    console.log("RESULTS:", results);
-    res.json(results);
   });
 });
 /* ================= DELETE ================= */
@@ -252,6 +247,39 @@ app.put("/update-student/:id", authMiddleware, (req, res) => {
       res.send("Updated");
     }
   );
+});
+/* ================DASHBOARD================== */
+
+app.get("/dashboard-stats", authMiddleware, (req, res) => {
+
+  const tenantId = req.user.tenant_id;
+
+  // Total Students
+  const totalQuery = "SELECT COUNT(*) AS total FROM students WHERE tenant_id = ?";
+
+  // Students per Course
+  const courseQuery = "SELECT course, COUNT(*) AS count FROM students WHERE tenant_id = ? GROUP BY course";
+
+  // Students per Year
+  const yearQuery = "SELECT year, COUNT(*) AS count FROM students WHERE tenant_id = ? GROUP BY year";
+
+  db.query(totalQuery, [tenantId], (err, totalResult) => {
+    if (err) return res.status(500).json(err);
+
+    db.query(courseQuery, [tenantId], (err, courseResult) => {
+      if (err) return res.status(500).json(err);
+
+      db.query(yearQuery, [tenantId], (err, yearResult) => {
+        if (err) return res.status(500).json(err);
+
+        res.json({
+          total: totalResult[0].total,
+          courseData: courseResult,
+          yearData: yearResult
+        });
+      });
+    });
+  });
 });
 
 /* ================= SERVER ================= */
