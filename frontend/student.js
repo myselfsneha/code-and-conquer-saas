@@ -60,7 +60,7 @@ async function fetchStudents(page = 1) {
     const course = courseEl.value;
     const year = yearEl.value;
 
-    let url = `http://localhost:3000/students?page=${page}&limit=${limit}`;
+    let url = `https://code-and-conquer-saas.onrender.com/students?page=${page}&limit=${limit}`;
 
     if (search) url += `&search=${encodeURIComponent(search)}`;
     if (course) url += `&course=${course}`;
@@ -223,7 +223,7 @@ async function addStudent() {
     }
 
     try {
-        const res = await fetch("http://localhost:3000/students", {
+        const res = await fetch("https://code-and-conquer-saas.onrender.com/students", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -257,7 +257,7 @@ async function deleteStudent(id) {
 
     if (!confirm("Delete student?")) return;
 
-    await fetch(`http://localhost:3000/delete-student/${id}`, {
+    await fetch(`https://code-and-conquer-saas.onrender.com/delete-student/${id}`, {
         method: "DELETE",
         headers: { Authorization: "Bearer " + token }
     });
@@ -288,7 +288,7 @@ async function submitFees() {
     }
 
     try {
-        await fetch("http://localhost:3000/add-fees", {
+        await fetch("https://code-and-conquer-saas.onrender.com/add-fees", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -318,7 +318,7 @@ async function markAttendance(id) {
     const status = confirm("Mark Present?") ? "present" : "absent";
 
     try {
-        await fetch("http://localhost:3000/mark-attendance", {
+        await fetch("https://code-and-conquer-saas.onrender.com/mark-attendance", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

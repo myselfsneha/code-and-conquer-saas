@@ -39,7 +39,7 @@ async function loadDashboardData() {
     const token = localStorage.getItem("token");
 
     try {
-        const res = await fetch("http://localhost:3000/dashboard-stats", {
+        const res = await fetch("https://code-and-conquer-saas.onrender.com/dashboard-stats", {
             headers: {
                 "Authorization": "Bearer " + token
             }

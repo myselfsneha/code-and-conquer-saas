@@ -1,42 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Welcome | Student Management System</title>
-    <link rel="stylesheet" href="style.css">
+  <title>SaaS App</title>
 </head>
 <body>
 
-<div class="landing-container">
-    <h1>🎓 Student Management System</h1>
+<h2>Register</h2>
+<button onclick="register()">Register Admin</button>
 
-    <p class="tagline">
-        A Multi-Tenant SaaS Platform to manage students, courses, and tenants efficiently.
-    </p>
+<h2>Login</h2>
+<button onclick="login()">Login</button>
 
-    <div class="features">
-        <div class="feature-box">
-            📚 Manage Students
-        </div>
-        <div class="feature-box">
-            🏫 Multi-Tenant Support
-        </div>
-        <div class="feature-box">
-            🔐 Secure Admin Login
-        </div>
-    </div>
-
-    <button onclick="goToLogin()">Get Started →</button>
-</div>
+<h2>Students</h2>
+<button onclick="getStudents()">Get Students</button>
 
 <script>
-function goToLogin() {
-    window.location.href = "login.html";
+const API = "https://code-and-conquer-saas.onrender.com";
+
+async function register() {
+  const res = await fetch(API + "/register-admin", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      name: "Sneha",
+      email: "sneha@gmail.com",
+      password: "1234",
+      tenant_id: 1
+    })
+  });
+
+  const data = await res.json();
+  alert(JSON.stringify(data));
+}
+
+async function login() {
+  const res = await fetch(API + "/login", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      email: "sneha@gmail.com",
+      password: "1234"
+    })
+  });
+
+  const data = await res.json();
+  localStorage.setItem("token", data.token);
+  alert("Logged in");
+}
+
+async function getStudents() {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(API + "/students", {
+    headers: {
+      Authorization: "Bearer " + token
+    }
+  });
+
+  const data = await res.json();
+  console.log(data);
+  alert(JSON.stringify(data));
 }
 </script>
 
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi,shivani & Sneha</p>
-</footer>
 </body>
 </html>

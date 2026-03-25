@@ -4,7 +4,7 @@ async function login() {
     const message = document.getElementById("message");
 
     try {
-        const res = await fetch("http://localhost:3000/login", {
+        const res = await fetch("https://code-and-conquer-saas.onrender.com/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
