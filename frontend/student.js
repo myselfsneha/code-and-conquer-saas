@@ -75,9 +75,14 @@ async function fetchStudents(page = 1) {
 
         const data = await res.json();
 
-        const students = data.students || data;
-        const total = data.total || students.length;
+        if (!res.ok) {
+          console.error("❌ Server Error:", data);
+          alert(data.message || "Server error");
+          return;
+        }
 
+        const students = Array.isArray(data.students) ? data.students : [];
+        const total = data.total || students.length;
         renderTable(students);
         setupPagination(total);
 
@@ -99,18 +104,23 @@ function renderTable(students) {
     if (!students || students.length === 0) {
         rows = `<tr><td colspan="8">No students found</td></tr>`;
     } else {
+
         students.forEach(student => {
 
-            // ✅ Fees display
+            // ✅ Safe values
+            let totalPaid = student.total_paid || 0;
+            let totalFees = student.fees_total || 0;
+
+            // ✅ Fees status logic
             let feesStatus = "Pending";
-            if (student.total_paid >= student.fees_total) {
+            if (totalPaid >= totalFees && totalFees > 0) {
                 feesStatus = "Paid ✅";
-            } else if (student.total_paid > 0) {
-                feesStatus = `Partial (₹${student.total_paid})`;
+            } else if (totalPaid > 0) {
+                feesStatus = `Partial (₹${totalPaid})`;
             }
 
-            // ✅ Attendance display
-            let attendancePercent = student.attendance_percent || 0;
+            // ✅ Attendance
+            let attendancePercent = student.attendance_percentage || 0;
             let attendanceDisplay = `${attendancePercent}%`;
 
             rows += `
@@ -121,15 +131,11 @@ function renderTable(students) {
                     <td>${student.course}</td>
                     <td>${student.year}</td>
 
-                    <!-- 💰 FEES COLUMN -->
-                    <td>
-                        ${feesStatus}
-                    </td>
+                    <!-- 💰 FEES -->
+                    <td>${feesStatus}</td>
 
-                    <!-- 📅 ATTENDANCE COLUMN -->
-                    <td>
-                        ${attendanceDisplay}
-                    </td>
+                    <!-- 📅 ATTENDANCE -->
+                    <td>${attendanceDisplay}</td>
 
                     <!-- ACTIONS -->
                     <td>
