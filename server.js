@@ -94,7 +94,110 @@ app.post('/login', (req, res) => {
 
 /* ================= STUDENTS ================= */
 
-app.get('/students', authMiddleware, (req, res) => {
+
+app.get("/students", authMiddleware, (req, res) => {
+
+  const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
+  const offset = (page - 1) * limit;
+
+  let baseQuery = `
+FROM students s
+
+LEFT JOIN (
+  SELECT student_id, SUM(amount_paid) AS total_paid
+  FROM fees
+  WHERE tenant_id = ?
+  GROUP BY student_id
+) f ON s.student_id = f.student_id
+
+LEFT JOIN (
+  SELECT student_id,
+         SUM(CASE WHEN status='present' THEN 1 ELSE 0 END) AS present_days,
+         COUNT(*) AS total_days
+  FROM attendance
+  WHERE tenant_id = ?
+  GROUP BY student_id
+) a ON s.student_id = a.student_id
+
+WHERE s.tenant_id = ?
+`;
+
+  let params = [
+  req.user.tenant_id, // students
+  req.user.tenant_id, // fees
+  req.user.tenant_id  // attendance
+];
+
+let countParams = [
+  req.user.tenant_id,
+  req.user.tenant_id,
+  req.user.tenant_id
+];
+
+  if (search) {
+    baseQuery += " AND LOWER(s.name) LIKE ?";
+    params.push(`%${search.toLowerCase()}%`);
+    countParams.push(`%${search.toLowerCase()}%`);
+  }
+
+  if (course) {
+    baseQuery += " AND LOWER(s.course) = ?";
+    params.push(course.toLowerCase());
+    countParams.push(course.toLowerCase());
+  }
+
+  if (year) {
+    baseQuery += " AND s.year = ?";
+    params.push(parseInt(year));
+    countParams.push(parseInt(year));
+  }
+
+  // 🔥 FINAL QUERY WITH AGGREGATION
+  const dataQuery = `
+    SELECT 
+      s.*,
+      COALESCE(f.total_paid, 0) AS total_paid,
+      COALESCE(a.present_days, 0) AS present_days,
+      COALESCE(a.total_days, 0) AS total_days,
+      CASE 
+        WHEN a.total_days > 0 
+        THEN ROUND((a.present_days / a.total_days) * 100, 2)
+        ELSE 0 
+      END AS attendance_percentage
+    ${baseQuery}
+    LIMIT ? OFFSET ?
+  `;
+
+  params.push(parseInt(limit), parseInt(offset));
+
+  const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
+
+  db.query(countQuery, countParams, (err, countRes) => {
+    if (err) return res.status(500).json(err);
+
+    db.query(dataQuery, params, (err, results) => {
+      if (err) return res.status(500).json(err);
+
+      res.json({
+        students: results,
+        total: countRes[0].total
+      });
+    });
+  });
+});
+/* ================= ADD STUDENT ================= */
+
+app.post("/students", authMiddleware, (req, res) => {
+
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { name, email, course, year, fees_total } = req.body;
+
+  if (!name || !email || !course || !year) {
+    return res.status(400).json({ message: "All fields required" });
+  }
   db.query(
     "SELECT * FROM students WHERE tenant_id=?",
     [req.user.tenant_id],
