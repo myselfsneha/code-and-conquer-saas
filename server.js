@@ -94,9 +94,7 @@ app.post('/login', (req, res) => {
 
 /* ================= STUDENTS ================= */
 
-<<<<<<< HEAD
-app.get('/students', authMiddleware, (req, res) => {
-=======
+
 app.get("/students", authMiddleware, (req, res) => {
 
   const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
@@ -200,8 +198,6 @@ app.post("/students", authMiddleware, (req, res) => {
   if (!name || !email || !course || !year) {
     return res.status(400).json({ message: "All fields required" });
   }
-
->>>>>>> 8b41e26 (features implemented)
   db.query(
     "SELECT * FROM students WHERE tenant_id=?",
     [req.user.tenant_id],
