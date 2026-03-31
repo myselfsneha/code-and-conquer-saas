@@ -1,27 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <title>Login</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-<div class="login-container">
-    <h2>Admin Login</h2>
+<body class="bg-light d-flex justify-content-center align-items-center" style="height:100vh;">
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
+<div class="card p-4 shadow" style="width: 350px;">
 
-    <button onclick="login()">Login</button>
+  <h3 class="text-center mb-3">Login 🔐</h3>
 
-    <p id="message"></p>
+  <!-- ROLE SELECT -->
+  <select id="role" class="form-select mb-2">
+    <option value="">Login As</option>
+    <option value="admin">Admin 👑</option>
+    <option value="tenant">Tenant 🏫</option>
+    <option value="student">Student 👨‍🎓</option>
+  </select>
+
+  <input type="email" id="email" class="form-control mb-2" placeholder="Email">
+  <input type="password" id="password" class="form-control mb-3" placeholder="Password">
+
+  <button onclick="loginUser()" class="btn btn-primary w-100">Login</button>
+
 </div>
 
 <script src="login.js"></script>
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi ,Shivani & Sneha</p></p>
-</footer>
+
 </body>
 </html>

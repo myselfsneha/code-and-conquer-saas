@@ -1,286 +1,139 @@
-/* ===============================
-   GLOBAL RESET
-=============================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", Arial, sans-serif;
-}
-
-/* ===============================
-   ROOT COLORS
-=============================== */
-:root {
-    --primary: #2563eb;
-    --dark: #1f2937;
-    --light: #f4f6f8;
-    --card: #ffffff;
-    --border: #e5e7eb;
-    --danger: #e74c3c;
-}
-
-/* ===============================
-   BODY
-=============================== */
 body {
-    background: var(--light);
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #c7d2fe, #93c5fd);
+    transition: 0.3s;
 }
-
-/* ===============================
-   NAVBAR
-=============================== */
-.navbar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    padding: 15px 40px;
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    z-index: 1000;
-}
-
-.logo {
-    font-size: 20px;
-    font-weight: bold;
-    color: var(--primary);
-}
-
-.nav-links a {
-    margin-left: 20px;
-    text-decoration: none;
-    color: var(--dark);
-    font-weight: 500;
-}
-
-/* ===============================
-   MAIN CONTAINER
-=============================== */
-.login-container {
-    max-width: 1100px;
-    margin: 110px auto 40px;
-    padding: 30px;
-    background: var(--card);
-    border-radius: 14px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
-}
-
-/* ===============================
-   TEXT
-=============================== */
-.login-container h2 {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-#welcome {
-    text-align: center;
-    margin-bottom: 20px;
-    font-weight: 500;
-    color: #555;
-}
-
-/* ===============================
-   KPI CARDS
-=============================== */
-.kpi-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 18px;
-    margin: 25px 0;
-}
-
-.kpi-card {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-radius: 14px;
-    color: white;
-    font-weight: 600;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+.card-custom:hover {
+    transform: translateY(-5px);
     transition: 0.3s;
 }
 
-.kpi-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
-}
-
-.kpi-card i {
-    font-size: 24px;
-}
-
-.kpi-card h4 {
-    font-size: 14px;
-}
-
-.kpi-card p {
-    font-size: 22px;
-}
-
-/* KPI Colors */
-.kpi-card.students {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-.kpi-card.courses {
-    background: linear-gradient(135deg, #43e97b, #38f9d7);
-}
-
-.kpi-card.tenants {
-    background: linear-gradient(135deg, #a18cd1, #fbc2eb);
-}
-
-.kpi-card.active {
-    background: linear-gradient(135deg, #f6d365, #fda085);
-}
-
-/* ===============================
-   CHART (FIXED SIZE ✅)
-=============================== */
-.chart-container {
-    margin-top: 30px;
-    padding: 20px;
-    border-radius: 14px;
-    background: white;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-
-    max-width: 700px;       /* 👈 FIX */
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#dashboardChart {
-    width: 100% !important;
-    height: 300px !important;   /* 👈 FIX */
-}
-
-/* ===============================
-   BUTTONS
-=============================== */
-button {
-    padding: 10px 15px;
-    border-radius: 8px;
-    border: none;
-    background: var(--primary);
-    color: white;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: #1d4ed8;
-}
-
-.dashboard-btn {
-    width: 100%;
-}
-
-/* ===============================
-   TABLE
-=============================== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background: white;
-}
-
-th {
-    background: var(--primary);
-    color: white;
-}
-
-th, td {
-    padding: 12px;
-    text-align: center;
-    border: 1px solid var(--border);
-}
-
-tr:nth-child(even) {
-    background: #f9fafb;
-}
-
-table button {
-    background: var(--danger);
-}
-
-table button:hover {
-    background: #c0392b;
-}
-
-/* ===============================
-   MODAL
-=============================== */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background: white;
-    padding: 20px;
-    width: 350px;
-    border-radius: 10px;
-}
-
-/* ===============================
-   INPUTS
-=============================== */
-input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-}
-
-/* ===============================
-   DARK MODE
-=============================== */
-.dark-mode {
-    background: #121212;
-    color: white;
-}
-
-.dark-mode .login-container,
-.dark-mode .chart-container,
-.dark-mode table {
+body.dark .card-custom {
     background: #1e1e1e;
     color: white;
 }
 
-/* ===============================
-   FOOTER
-=============================== */
-.footer {
-    margin-top: 40px;
-    padding: 18px;
-    text-align: center;
-    background: var(--dark);
-    color: #e5e7eb;
+/* DARK MODE */
+body.dark {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
 }
 
-/* ===============================
-   RESPONSIVE
-=============================== */
-@media (max-width: 900px) {
-    .kpi-container {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* SIDEBAR */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    background: linear-gradient(180deg, #3b82f6, #6366f1);
+    color: white;
+    padding: 20px;
 }
 
-@media (max-width: 500px) {
-    .kpi-container {
-        grid-template-columns: 1fr;
-    }
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    text-decoration: none;
+}
+
+.sidebar a:hover,
+.active {
+    background: rgba(255,255,255,0.2);
+}
+
+/* MAIN */
+.main {
+    margin-left: 260px;
+    padding: 25px;
+}
+
+/* CARDS */
+.card-custom {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0px 10px 25px rgba(0,0,0,0.1);
+    transition: 0.3s;
+}
+
+.card-custom:hover {
+    transform: translateY(-5px);
+}
+
+body.dark .card-custom {
+    background: #1e293b;
+}
+
+/* BUTTON */
+.btn-primary {
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    border: none;
+}
+
+/* TABLE */
+.table {
+    background: white;
+    border-radius: 10px;
+}
+
+body.dark .table {
+    background: #1e293b;
+    color: white;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+/* SWITCH */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+.switch input { display:none; }
+
+.slider {
+    position: absolute;
+    background: #ccc;
+    border-radius: 24px;
+    top:0; left:0; right:0; bottom:0;
+}
+
+.slider:before {
+    content:"";
+    position:absolute;
+    height:18px;
+    width:18px;
+    left:3px;
+    bottom:3px;
+    background:white;
+    border-radius:50%;
+}
+
+input:checked + .slider {
+    background:#3b82f6;
+}
+
+input:checked + .slider:before {
+    transform:translateX(26px);
 }

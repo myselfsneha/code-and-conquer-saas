@@ -1,35 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Tenants</title>
-    <link rel="stylesheet" href="style.css">
+<title>Tenants</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
 </head>
+
 <body>
 
-<div class="login-container">
-    <h2>Tenants List</h2>
+<!-- SIDEBAR -->
+<div class="sidebar">
+<h2>🎓 Code & Conquer</h2>
 
-    <table border="1" width="100%">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tenant Name</th>
-                <th>Email</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="tenantTable"></tbody>
-    </table>
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="students.html">👨‍🎓 Students</a>
+<a href="courses.html">📚 Courses</a>
+<a href="tenants.html" class="active">🏫 Tenants</a>
 
-    <button onclick="addTenant()">Add Tenant</button>
-    <br><br>
-    <button onclick="goBack()">Back to Dashboard</button>
+<label class="switch mt-3">
+<input type="checkbox" onclick="toggleDark()">
+<span class="slider"></span>
+</label>
+<p>Dark Mode</p>
+
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="card-custom">
+
+<h3>Tenants 🏫</h3>
+
+<button class="btn btn-success mb-3" onclick="openModal()">+ Add Tenant</button>
+
+<table class="table text-center">
+<thead>
+<tr>
+<th>ID</th>
+<th>Tenant Name</th>
+<th>Email</th>
+<th>College</th>
+<th>Phone</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="tenantTable"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="tenantModal">
+<div class="modal-content">
+
+<h5>Add Tenant</h5>
+
+<input id="tenantName" class="form-control mb-2" placeholder="Tenant Name">
+<input id="tenantEmail" class="form-control mb-2" placeholder="Email">
+<input id="tenantCollege" class="form-control mb-2" placeholder="College Name">
+<input id="tenantPhone" class="form-control mb-2" placeholder="Phone Number">
+
+<button class="btn btn-success w-100 mb-2" onclick="addTenant()">Add</button>
+<button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
+
+</div>
 </div>
 
 <script src="tenants.js"></script>
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi ,Shivani & Sneha</p>
-</footer>
+
+<script>
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+</script>
+
 </body>
 </html>

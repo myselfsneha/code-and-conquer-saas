@@ -1,115 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+<title>Dashboard</title>
 
-    <link rel="stylesheet" href="style.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-    <div class="logo">Code & Conquer</div>
+<div class="sidebar">
+<h2>🎓 Code & Conquer</h2>
+<a href="dashboard.html" class="active">📊 Dashboard</a>
+<a href="students.html">👨‍🎓 Students</a>
 
-    <div class="nav-links">
-        <a href="dashboard.html">Dashboard</a>
-        <a href="student.html">Students</a>
-        <a href="login.html" onclick="localStorage.clear()">Logout</a>
-
-        <!-- Dark Mode Button -->
-        <button onclick="toggleDarkMode()" class="dark-btn">
-            <i class="fa-solid fa-moon"></i>
-            <i class="fa-solid fa-user-circle profile-icon"></i>
-        </button>
-    </div>
+<label class="switch mt-3">
+<input type="checkbox" onclick="toggleDark()">
+<span class="slider"></span>
+</label>
+<p>Dark Mode</p>
 </div>
 
-<!-- MAIN CONTENT -->
-<div class="login-container">
+<div class="main">
 
-    <h2>Admin Dashboard 🚀</h2>
-    <p id="welcome">Welcome 👋</p>
+<h4 id="greeting" style="margin-bottom:10px;"></h4>
+<h2>Dashboard 📊</h2>
 
-    <!-- CARDS -->
-    <div class="kpi-container">
+<!-- CARDS -->
+<div class="row">
 
-    <div class="kpi-card students">
-        <i class="fa-solid fa-users"></i>
-        <div>
-            <h4>Total Students</h4>
-            <p id="studentCount">0</p>
-        </div>
-    </div>
+<div class="col-md-3">
+<div class="card-custom">👨‍🎓 Total Students<br><b>120</b></div>
+</div>
 
-    <div class="kpi-card courses">
-        <i class="fa-solid fa-book"></i>
-        <div>
-            <h4>Total Courses</h4>
-            <p id="courseCount">0</p>
-        </div>
-    </div>
+<div class="col-md-3">
+<div class="card-custom">💰 Fees<br><b>₹1,20,000</b></div>
+</div>
 
-    <div class="kpi-card tenants">
-        <i class="fa-solid fa-building"></i>
-        <div>
-            <h4>Total Tenants</h4>
-            <p id="tenantCount">0</p>
-        </div>
-    </div>
+<div class="col-md-3">
+<div class="card-custom">📉 Pending<br><b>₹30,000</b></div>
+</div>
 
-    <div class="kpi-card active">
-        <i class="fa-solid fa-user-check"></i>
-        <div>
-            <h4>Active Users</h4>
-            <p id="activeUsers">0</p>
-        </div>
-    </div>
-
-    </div>
-
-    <!-- CHART -->
-    <div class="chart-container">
-        <canvas id="dashboardChart"></canvas>
-    </div>
-
-    <!-- ACTION BUTTONS -->
-    <button class="dashboard-btn" onclick="window.location.href='student.html'">
-        <i class="fa-solid fa-user-graduate"></i> Manage Students
-    </button>
-
-    <button onclick="window.location.href='tenants.html'">
-        Manage Tenants
-    </button>
-
-    <br><br>
-
-    <button onclick="window.location.href='courses.html'">
-        Manage Courses
-    </button>
-
-    <br><br>
-
-    <button onclick="logout()">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
-    </button>
+<div class="col-md-3">
+<div class="card-custom">📚 Courses<br><b>3</b></div>
+</div>
 
 </div>
 
-<!-- JS -->
+<!-- CHARTS -->
+<div class="row mt-4">
+
+<div class="col-md-6">
+<canvas id="pieChart"></canvas>
+</div>
+
+<div class="col-md-6">
+<canvas id="barChart"></canvas>
+</div>
+
+</div>
+
+<!-- TABLE -->
+<div class="card-custom mt-4">
+<h5>Recent Students</h5>
+<table class="table">
+<tr><td>Tirthi</td><td>BCA</td></tr>
+<tr><td>Sneha</td><td>MCA</td></tr>
+<tr><td>Oshi</td><td>BSA</td></tr>
+<tr><td>Shivani</td><td>MCA</td></tr>
+<tr><td>Khushi</td><td>BSA</td></tr>
+</table>
+</div>
+
+</div>
+
+<script>
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
+
+new Chart(document.getElementById("pieChart"), {
+type: "pie",
+data: {
+labels: ["Paid","Pending"],
+datasets: [{data: [70,30]}]
+}
+});
+
+new Chart(document.getElementById("barChart"), {
+type: "bar",
+data: {
+labels: ["BCA","BBA","MCA"],
+datasets: [{data: [50,40,30]}]
+}
+});
+</script>
 <script src="dashboard.js"></script>
-
-<!-- FOOTER -->
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi ,Shivani & Sneha</p>
-</footer>
 
 </body>
 </html>

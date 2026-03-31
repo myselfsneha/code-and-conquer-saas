@@ -1,68 +1,151 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const savedTenants = localStorage.getItem("tenants");
+const API = "https://code-and-conquer-saas.onrender.com";
 
-    window.tenants = savedTenants
-        ? JSON.parse(savedTenants)
-        : [
-            { id: 1, name: "ABC Institute", email: "abc@gmail.com" },
-            { id: 2, name: "XYZ Academy", email: "xyz@gmail.com" }
-        ];
-
-    renderTenants();
-    updateTenantCount();
-});
-
-function renderTenants() {
-    const table = document.getElementById("tenantTable");
-    table.innerHTML = "";
-
-    tenants.forEach((tenant, index) => {
-        table.innerHTML += `
-            <tr>
-                <td>${tenant.id}</td>
-                <td>${tenant.name}</td>
-                <td>${tenant.email}</td>
-                <td>
-                    <button onclick="deleteTenant(${index})">Delete</button>
-                </td>
-            </tr>
-        `;
-    });
+// TEMP TOKEN (remove later)
+if (!localStorage.getItem("token")) {
+    localStorage.setItem("token", "test123");
 }
 
-function addTenant() {
-    const name = prompt("Enter Tenant Name:");
-    const email = prompt("Enter Tenant Email:");
+// =====================
+// LOAD
+// =====================
+document.addEventListener("DOMContentLoaded", () => {
+    fetchTenants();
+});
 
-    if (!name || !email) {
-        alert("All fields required");
+// =====================
+// FETCH TENANTS
+// =====================
+async function fetchTenants() {
+
+    const token = localStorage.getItem("token");
+
+    try {
+        const res = await fetch(API + "/tenants", {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        });
+
+        const data = await res.json();
+        const tenants = data.tenants || data;
+
+        renderTenants(tenants);
+
+    } catch (err) {
+        console.error(err);
+        alert("Error loading tenants");
+    }
+}
+
+// =====================
+// RENDER TABLE
+// =====================
+function renderTenants(tenants) {
+
+    const table = document.getElementById("tenantTable");
+
+    if (!tenants.length) {
+        table.innerHTML = `<tr><td colspan="6">No tenants found</td></tr>`;
         return;
     }
 
-    tenants.push({
-        id: tenants.length + 1,
-        name,
-        email
+    let rows = "";
+
+    tenants.forEach(t => {
+        rows += `
+        <tr>
+            <td>${t.tenant_id || "-"}</td>
+            <td>${t.name}</td>
+            <td>${t.email}</td>
+            <td>${t.college || "-"}</td>
+            <td>${t.phone || "-"}</td>
+            <td>
+                <button class="btn btn-danger btn-sm" onclick="deleteTenant(${t.tenant_id})">
+                    Delete
+                </button>
+            </td>
+        </tr>
+        `;
     });
-    localStorage.setItem("tenants", JSON.stringify(tenants));
-    renderTenants();
-    updateTenantCount();
+
+    table.innerHTML = rows;
 }
 
-function updateTenantCount() {
-    localStorage.setItem("tenantsCount", tenants.length);
+// =====================
+// ADD TENANT
+// =====================
+async function addTenant() {
+
+    const name = document.getElementById("tenantName").value;
+    const email = document.getElementById("tenantEmail").value;
+    const college = document.getElementById("tenantCollege").value;
+    const phone = document.getElementById("tenantPhone").value;
+
+    const token = localStorage.getItem("token");
+
+    if (!name || !email || !college || !phone) {
+        alert("Fill all fields");
+        return;
+    }
+
+    try {
+        await fetch(API + "/tenants", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + token
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                college,
+                phone
+            })
+        });
+
+        alert("Tenant added");
+        closeModal();
+        fetchTenants();
+
+    } catch (err) {
+        console.error(err);
+        alert("Error adding tenant");
+    }
 }
 
-function deleteTenant(index) {
-    tenants.splice(index, 1);
-    localStorage.setItem("tenants", JSON.stringify(tenants));
-    updateTenantCount();
-    renderTenants();
+// =====================
+// DELETE TENANT
+// =====================
+async function deleteTenant(id) {
+
+    const token = localStorage.getItem("token");
+
+    if (!confirm("Delete tenant?")) return;
+
+    try {
+        await fetch(`${API}/tenants/${id}`, {
+            method: "DELETE",
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        });
+
+        alert("Deleted");
+        fetchTenants();
+
+    } catch (err) {
+        console.error(err);
+        alert("Error deleting");
+    }
 }
 
-function goBack() {
-    window.location.href = "dashboard.html";
+// =====================
+// MODAL
+// =====================
+function openModal(){
+    document.getElementById("tenantModal").style.display = "flex";
 }
-function updateTenantCount() {
-    localStorage.setItem("tenantsCount", tenants.length);
+
+function closeModal(){
+    document.getElementById("tenantModal").style.display = "none";
 }

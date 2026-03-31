@@ -1,139 +1,133 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Students</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<title>Students</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<!-- Toast -->
-<div id="toast" class="toast">Student added successfully</div>
+<div class="sidebar">
+<h2>🎓 Code & Conquer</h2>
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="students.html" class="active">👨‍🎓 Students</a>
 
-<!-- Navbar -->
-<div class="navbar">
-    <div class="logo">Code & Conquer</div>
+<!-- ✅ ADDED LOGOUT -->
+<a href="login.html" onclick="localStorage.clear()">🚪 Logout</a>
 
-    <div class="nav-links">
-        <a href="dashboard.html">Dashboard</a>
-        <a href="students.html">Students</a>
-        <a href="login.html" onclick="localStorage.clear()">Logout</a>
-    </div>
+<label class="switch mt-3">
+<input type="checkbox" onclick="toggleDark()">
+<span class="slider"></span>
+</label>
+<p>Dark Mode</p>
 </div>
 
-<!-- MAIN CONTAINER -->
-<div class="login-container">
-    <h2>Students List</h2>
+<div class="main">
 
-    <!-- 🔎 SEARCH + FILTER -->
-    <input type="text" id="search" placeholder="Search by name">
+<div class="card-custom">
 
-    <select id="filterCourse">
-        <option value="">All Courses</option>
-        <option value="BCA">BCA</option>
-        <option value="BBA">BBA</option>
-        <option value="MCA">MCA</option>
-    </select>
+<h3>Students 👨‍🎓</h3>
 
-    <select id="filterYear">
-        <option value="">All Years</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-    </select>
+<!-- ✅ ADDED SEARCH + FILTER (no styling change, simple stack) -->
+<input id="search" class="form-control mb-2" placeholder="Search by name">
 
-    <button onclick="fetchStudents(1)">
-        <i class="fa-solid fa-magnifying-glass"></i> Search
-    </button>
+<select id="filterCourse" class="form-control mb-2">
+<option value="">All Courses</option>
+<option>BCA</option>
+<option>BBA</option>
+<option>MCA</option>
+</select>
 
-    <!-- ➕ ADD BUTTON -->
-    <button onclick="openModal()">
-        <i class="fa-solid fa-plus"></i> Add Student
-    </button>
+<select id="filterYear" class="form-control mb-2">
+<option value="">All Years</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+</select>
 
-    <!-- 📊 TABLE -->
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Course</th>
-                <th>Year</th>
-                <th>Fees Paid</th>
-                <th>Attendance %</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+<button class="btn btn-primary mb-3" onclick="fetchStudents(1)">Search</button>
 
-    <!-- PAGINATION -->
-    <div id="pagination" style="margin-top:20px; text-align:center;"></div>
+<!-- EXISTING BUTTON (UNCHANGED) -->
+<button class="btn btn-success mb-3" onclick="openModal()">+ Add Student</button>
 
-    <br>
+<table class="table text-center">
+<thead>
+<tr>
+<th>ID</th> <!-- ✅ ADDED -->
+<th>Name</th>
+<th>Email</th>
+<th>Course</th>
+<th>Year</th>
+<th>Fees Paid</th> <!-- ✅ ADDED -->
+<th>Attendance %</th> <!-- ✅ ADDED -->
+<th>Action</th>
+</tr>
+</thead>
 
-    <!-- ACTION BUTTONS -->
-    <button onclick="goBack()">
-        <i class="fa-solid fa-arrow-left"></i> Back
-    </button>
+<tbody id="tableBody">
+<tr>
+<td>1</td>
+<td>Tirthi</td>
+<td>test@gmail.com</td>
+<td>BCA</td>
+<td>2</td>
+<td>₹20000</td>
+<td>85%</td>
+<td>
+<button class="btn btn-primary btn-sm">Edit</button>
+<button class="btn btn-danger btn-sm">Delete</button>
+</td>
+</tr>
+</tbody>
+</table>
 
-    <button onclick="exportStudents()">
-        <i class="fa-solid fa-download"></i> Export
-    </button>
 </div>
 
-<!-- ================= MODAL ================= -->
+</div>
+
+<!-- MODAL -->
 <div class="modal" id="studentModal">
-    <div class="modal-content">
-        <h3>Add Student</h3>
+<div class="modal-content">
 
-        <input type="text" id="studentName" placeholder="Student Name">
-        <input type="email" id="studentEmail" placeholder="Student Email">
+<h5>Add Student</h5>
 
-        <select id="studentCourse">
-            <option value="">Select Course</option>
-            <option value="BCA">BCA</option>
-            <option value="MCA">MCA</option>
-            <option value="BBA">BBA</option>
-        </select>
+<input id="studentName" class="form-control mb-2" placeholder="Name">
+<input id="studentEmail" class="form-control mb-2" placeholder="Email">
 
-        <select id="studentYear">
-            <option value="">Select Year</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-        </select>
+<!-- ✅ ADDED -->
+<select id="studentCourse" class="form-select mb-2">
+    <option value="">Select Course</option>
+</select>
 
-        <button onclick="addStudent()">
-            <i class="fa-solid fa-check"></i> Add Student
-        </button>
+<select id="studentYear" class="form-control mb-2">
+<option value="">Select Year</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+</select>
 
-        <button class="close-btn" onclick="closeModal()">
-            Cancel
-        </button>
-    </div>
+<button class="btn btn-success w-100 mb-2" onclick="addStudent()">Add</button>
+<button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
+
+</div>
 </div>
 
-<!-- ================= FEES MODAL ================= -->
-<div class="modal" id="feesModal">
-  <div class="modal-content">
-    <h3>Add Fees</h3>
-    <input type="number" id="feesAmount" placeholder="Enter Amount">
-    <button onclick="submitFees()">Submit</button>
-    <button class="close-btn" onclick="closeFeesModal()">Cancel</button>
-  </div>
-</div>
+<script>
+function toggleDark(){
+document.body.classList.toggle("dark");
+}
 
-<!-- JS -->
-<script src="student.js"></script>
+function openModal(){
+document.getElementById("studentModal").style.display="flex";
+}
 
-<!-- FOOTER -->
-<footer class="footer">
-    <p>© 2026 Code & Conquer SaaS Platform</p>
-</footer>
+function closeModal(){
+document.getElementById("studentModal").style.display="none";
+}
+</script>
 
 </body>
 </html>

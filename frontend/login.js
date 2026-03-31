@@ -1,33 +1,49 @@
-async function login() {
+const API = "https://code-and-conquer-saas.onrender.com";
+
+async function loginUser() {
+
+    const role = document.getElementById("role").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    const message = document.getElementById("message");
+
+    if (!role || !email || !password) {
+        alert("Fill all fields");
+        return;
+    }
 
     try {
-        const res = await fetch("https://code-and-conquer-saas.onrender.com/login", {
+        const res = await fetch(`${API}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, role })
         });
 
         const data = await res.json();
 
-        console.log("LOGIN RESPONSE:", data); // 🔍 DEBUG
-
         if (!res.ok) {
-            message.innerText = data.message || "Login failed";
+            alert(data.message || "Login failed");
             return;
         }
 
+        // ✅ SAVE TOKEN + ROLE
         localStorage.setItem("token", data.token);
-        localStorage.setItem("email", email);
+        localStorage.setItem("role", role);
 
-        window.location.href = "dashboard.html";
+        // ✅ REDIRECT BASED ON ROLE
+        if (role === "admin") {
+            window.location.href = "dashboard.html";
+        } 
+        else if (role === "tenant") {
+            window.location.href = "dashboard.html";
+        } 
+        else {
+            window.location.href = "dashboard.html";
+        }
 
     } catch (err) {
-        console.error("LOGIN ERROR:", err);
-        message.innerText = "Server error";
+        console.error(err);
+        alert("Server error");
     }
 }
