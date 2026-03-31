@@ -1,36 +1,34 @@
-const express = require('express');
+const express = require("express");
 const app = express();
-const cors = require('cors');
-const mysql = require('mysql2');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const SECRET_KEY = "codeandconquer_secret";
-
-app.use(express.json());
-app.use(cors({
-  origin: "*"
-}));
-
-/* ================= DATABASE ================= */
+const cors = require("cors");
+const mysql = require("mysql2");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 require("dotenv").config();
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
-});
-db.connect(err => {
+const SECRET_KEY = "codeandconquer_secret";
+
+app.use(express.json());
+app.use(cors({ origin: "*" }));
+
+/* ================= DATABASE ================= */
+
+const db = mysql.createConnection(process.env.MYSQLPUBLICURL);
+
+db.connect((err) => {
   if (err) {
-    console.error("DB Error:", err);
+    console.error("❌ DB Error:", err.message);
   } else {
     console.log("✅ MySQL Connected");
   }
 });
 
-/* ================= AUTH ================= */
+db.on("error", (err) => {
+  console.error("⚠️ DB Connection Lost:", err.message);
+});
+
+/* ================= AUTH MIDDLEWARE ================= */
 
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers["authorization"];
@@ -45,49 +43,63 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, SECRET_KEY);
     req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
 
-/* ================= REGISTER ================= */
+/* ================= REGISTER ADMIN ================= */
 
-app.post('/register-admin', async (req, res) => {
+app.post("/register-admin", async (req, res) => {
   const { name, email, password, tenant_id } = req.body;
 
   if (!name || !email || !password || !tenant_id) {
     return res.status(400).json({ message: "Missing fields" });
   }
 
-  const hashed = await bcrypt.hash(password, 10);
+  try {
+    const hashed = await bcrypt.hash(password, 10);
 
-  db.query(
-    `INSERT INTO users (name, email, password, role, tenant_id)
-     VALUES (?, ?, ?, 'admin', ?)`,
-    [name, email, hashed, tenant_id],
-    (err) => {
-      if (err) return res.status(500).json(err);
-      res.json({ message: "Admin Registered" });
-    }
-  );
+    db.query(
+      `INSERT INTO users (name, email, password, role, tenant_id)
+       VALUES (?, ?, ?, 'admin', ?)`,
+      [name, email, hashed, tenant_id],
+      (err) => {
+        if (err) return res.status(500).json(err);
+        res.json({ message: "Admin Registered" });
+      }
+    );
+  } catch (err) {
+    res.status(500).json(err);
+  }
 });
 
 /* ================= LOGIN ================= */
 
-app.post('/login', (req, res) => {
+app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   db.query("SELECT * FROM users WHERE email=?", [email], async (err, results) => {
     if (err) return res.status(500).json(err);
-    if (results.length === 0) return res.status(400).json({ message: "User not found" });
+
+    if (results.length === 0) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     const user = results[0];
     const match = await bcrypt.compare(password, user.password);
 
-    if (!match) return res.status(400).json({ message: "Invalid password" });
+    if (!match) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
 
+    // ✅ IMPORTANT: include role
     const token = jwt.sign(
-      { user_id: user.user_id, tenant_id: user.tenant_id },
+      {
+        user_id: user.user_id,
+        tenant_id: user.tenant_id,
+        role: user.role
+      },
       SECRET_KEY,
       { expiresIn: "1h" }
     );
@@ -96,11 +108,9 @@ app.post('/login', (req, res) => {
   });
 });
 
-/* ================= STUDENTS ================= */
-
+/* ================= GET STUDENTS ================= */
 
 app.get("/students", authMiddleware, (req, res) => {
-
   const { search = "", course = "", year = "", page = 1, limit = 5 } = req.query;
   const offset = (page - 1) * limit;
 
@@ -127,16 +137,12 @@ WHERE s.tenant_id = ?
 `;
 
   let params = [
-  req.user.tenant_id, // students
-  req.user.tenant_id, // fees
-  req.user.tenant_id  // attendance
-];
+    req.user.tenant_id,
+    req.user.tenant_id,
+    req.user.tenant_id
+  ];
 
-let countParams = [
-  req.user.tenant_id,
-  req.user.tenant_id,
-  req.user.tenant_id
-];
+  let countParams = [...params];
 
   if (search) {
     baseQuery += " AND LOWER(s.name) LIKE ?";
@@ -156,7 +162,6 @@ let countParams = [
     countParams.push(parseInt(year));
   }
 
-  // 🔥 FINAL QUERY WITH AGGREGATION
   const dataQuery = `
     SELECT 
       s.*,
@@ -189,33 +194,19 @@ let countParams = [
     });
   });
 });
+
 /* ================= ADD STUDENT ================= */
 
 app.post("/students", authMiddleware, (req, res) => {
-
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Access denied" });
   }
 
-  const { name, email, course, year, fees_total } = req.body;
+  const { name, email, course, year } = req.body;
 
   if (!name || !email || !course || !year) {
     return res.status(400).json({ message: "All fields required" });
   }
-  db.query(
-    "SELECT * FROM students WHERE tenant_id=?",
-    [req.user.tenant_id],
-    (err, results) => {
-      if (err) return res.status(500).json(err);
-      res.json(results);
-    }
-  );
-});
-
-/* ================= ADD STUDENT ================= */
-
-app.post('/students', authMiddleware, (req, res) => {
-  const { name, email, course, year } = req.body;
 
   db.query(
     `INSERT INTO students (name, email, course, year, tenant_id)
@@ -230,8 +221,14 @@ app.post('/students', authMiddleware, (req, res) => {
 
 /* ================= SERVER ================= */
 
-app.listen(3000, () => {
-  console.log("🚀 Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
+app.get("/", (req, res) => {
+  res.send("API Running ✅");
 });
 
 app.get("/app-status", (req, res) => {
