@@ -4,6 +4,7 @@ const cors = require('cors');
 const mysql = require('mysql2');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+require("dotenv").config();
 
 const SECRET_KEY = "codeandconquer_secret";
 
@@ -14,11 +15,14 @@ app.use(cors({
 
 /* ================= DATABASE ================= */
 
-const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '2003', // change if needed
-  database: 'saas_student'
+const db = mysql.createConnection(process.env.MYSQLPUBLICURL);
+
+db.connect(err => {
+  if (err) {
+    console.error("DB Error:", err);
+  } else {
+    console.log("✅ MySQL Connected");
+  }
 });
 
 db.connect(err => {
