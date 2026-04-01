@@ -120,21 +120,63 @@ table {
 }
 
 /* ===============================
-   DARK MODE
+   FULL DARK MODE (GLOBAL)
 =============================== */
+.dark {
+    background: #0f172a !important;
+    color: #e5e7eb;
+}
+
+/* MAIN AREA */
+.dark .main {
+    background: #0f172a;
+}
+
+/* CARDS */
+.dark .card-custom {
+    background: #1e293b;
+    color: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+}
+
+/* SIDEBAR */
 .dark .sidebar {
-    background: linear-gradient(180deg, #111, #222);
+    background: linear-gradient(180deg, #020617, #0f172a);
 }
 
+/* TABLE */
 .dark table {
-    background: #1e1e1e;
+    background: #1e293b;
     color: white;
 }
 
+.dark th {
+    background: #334155;
+}
+
+.dark td {
+    border-color: #475569;
+}
+
+/* INPUT */
 .dark input {
-    background: #2a2a2a;
+    background: #020617;
     color: white;
-    border: 1px solid #555;
+    border: 1px solid #475569;
+}
+
+/* MODAL */
+.dark .modal-content {
+    background: #1e293b;
+}
+
+/* BUTTON */
+.dark button {
+    background: #2563eb;
+}
+
+.dark button:hover {
+    background: #1d4ed8;
 }
 
 /* ===============================
