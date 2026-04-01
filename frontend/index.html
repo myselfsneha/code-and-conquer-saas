@@ -1,159 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Code & Conquer SaaS</title>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
-
-<style>
-
-/* ===== BACKGROUND GRADIENT ANIMATION ===== */
-body {
-    background: linear-gradient(270deg, #4facfe, #00f2fe, #a18cd1);
-    background-size: 600% 600%;
-    animation: gradientMove 10s ease infinite;
-    color: white;
-}
-
-@keyframes gradientMove {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-}
-
-/* ===== HERO ===== */
-.hero {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-
-    animation: fadeIn 1.5s ease;
-}
-
-.hero h1 {
-    font-size: 60px;
-    font-weight: bold;
-}
-
-.hero p {
-    font-size: 20px;
-    opacity: 0.9;
-}
-
-/* ===== BUTTONS ===== */
-.hero .btn {
-    margin: 10px;
-    padding: 12px 30px;
-    font-size: 18px;
-    border-radius: 30px;
-    transition: 0.3s;
-}
-
-.hero .btn:hover {
-    transform: scale(1.05);
-}
-
-/* ===== GLASS CARDS ===== */
-.feature-card {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 25px;
-    transition: 0.3s;
-}
-
-.feature-card:hover {
-    transform: translateY(-10px);
-}
-
-/* ===== ANIMATION ===== */
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(20px);}
-    to {opacity: 1; transform: translateY(0);}
-}
-
-/* ===== FOOTER ===== */
-.footer {
-    margin-top: 60px;
-    opacity: 0.8;
-}
-
-</style>
-
+    <meta charset="UTF-8">
+    <title>Welcome | Student Management System</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<!-- HERO -->
-<div class="hero">
+<div class="landing-container">
+    <h1>🎓 Student Management System</h1>
 
-    <h1>🎓 Code & Conquer</h1>
-    <p>Smart SaaS Platform for Student Management 🚀</p>
+    <p class="tagline">
+        A Multi-Tenant SaaS Platform to manage students, courses, and tenants efficiently.
+    </p>
 
-    <div>
-        <a href="login.html" class="btn btn-light">Login</a>
-        <a href="register.html" class="btn btn-dark">Register</a>
+    <div class="features">
+        <div class="feature-box">
+            📚 Manage Students
+        </div>
+        <div class="feature-box">
+            🏫 Multi-Tenant Support
+        </div>
+        <div class="feature-box">
+            🔐 Secure Admin Login
+        </div>
     </div>
 
+    <button onclick="goToLogin()">Get Started →</button>
 </div>
 
-<!-- FEATURES -->
-<div class="container text-center mt-5">
-
-    <h3 class="mb-4">✨ Powerful Features</h3>
-
-    <div class="row g-4">
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                👨‍🎓 <h5>Students</h5>
-                Manage all students easily
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                💰 <h5>Fees</h5>
-                Track payments & pending
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                📊 <h5>Analytics</h5>
-                Smart dashboard insights
-            </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="feature-card">
-                🏫 <h5>Multi-Tenant</h5>
-                Manage multiple colleges
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
-<!-- FOOTER -->
-<div class="footer text-center">
-    <p>© 2026 Code & Conquer SaaS Platform</p>
-</div>
+<script src="config.js"></script>
+<script src="common.js"></script>
 
 <script>
-
-/* AUTO REDIRECT IF LOGGED IN */
-if(localStorage.getItem("token")){
-    window.location.href = "dashboard.html";
+function goToLogin() {
+    window.location.href = "login.html";
 }
 
-</script>
-<script src="index.js"></script>
+// ✅ AUTO REDIRECT IF ALREADY LOGGED IN
+let token = localStorage.getItem("token");
+let loginTime = localStorage.getItem("loginTime");
 
+if(token && loginTime){
+    let currentTime = new Date().getTime();
+
+    if(currentTime - loginTime < TOKEN_EXPIRY){
+        window.location.href = "dashboard.html";
+    }
+}
+</script>
+
+<footer class="footer">
+    <p>© 2026 Code & Conquer SaaS Platform | Developed by Oshi, Tirthi,shivani & Sneha</p>
+</footer>
 </body>
 </html>

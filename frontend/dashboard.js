@@ -1,51 +1,88 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+// ===== AUTH =====
+checkAuth();
 
-const role = localStorage.getItem("role");
+// ===== LOAD DASHBOARD =====
+async function loadDashboard(){
+    showLoader();
 
-// 🔐 PROTECT ROUTE
-if (!localStorage.getItem("token")) {
-    window.location.href = "login.html";
-}
+    try{
+        let res = await fetch(`${API}/students`);
+        let data = await res.json();
 
-// =====================
-document.addEventListener("DOMContentLoaded", () => {
-    setGreeting();
-    loadDashboard();
-});
+        let totalStudents = data.length;
+        let totalFees = 0;
+        let pendingFees = 0;
 
-// =====================
-function setGreeting() {
-    const hour = new Date().getHours();
-    let msg = "Hello";
+        let courseCount = {
+            BCA: 0,
+            BBA: 0,
+            MCA: 0
+        };
 
-    if (hour < 12) msg = "Good Morning ☀️";
-    else if (hour < 18) msg = "Good Afternoon 🌤";
-    else msg = "Good Evening 🌙";
+        data.forEach(s => {
+            totalFees += s.feesPaid || 0;
 
-    document.getElementById("greeting").innerText = msg + ", " + role;
-}
+            if((s.feesPaid || 0) < 50000){
+                pendingFees += (50000 - (s.feesPaid || 0));
+            }
 
-// =====================
-async function loadDashboard() {
-
-    const token = localStorage.getItem("token");
-
-    try {
-        const res = await fetch(API + "/students", {
-            headers: {
-                Authorization: "Bearer " + token
+            if(courseCount[s.course] !== undefined){
+                courseCount[s.course]++;
             }
         });
 
-        const data = await res.json();
-        const students = data.students || data;
+        // ===== UPDATE CARDS =====
+        document.getElementById("totalStudents").innerText = totalStudents;
+        document.getElementById("totalFees").innerText = "₹" + totalFees;
+        document.getElementById("pendingFees").innerText = "₹" + pendingFees;
+        document.getElementById("totalCourses").innerText = Object.keys(courseCount).length;
 
-        let total = students.length;
+        // ===== RECENT STUDENTS =====
+        let table = document.getElementById("recentStudents");
+        table.innerHTML = "";
 
-        document.querySelectorAll(".card-custom")[0].innerHTML =
-            `👨‍🎓 Total Students<br><b>${total}</b>`;
+        data.slice(-5).reverse().forEach(s => {
+            table.innerHTML += `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.course}</td>
+            </tr>`;
+        });
 
-    } catch (err) {
-        console.error(err);
+        // ===== PIE CHART =====
+        new Chart(document.getElementById("pieChart"), {
+            type: "pie",
+            data: {
+                labels: ["Paid", "Pending"],
+                datasets: [{
+                    data: [totalFees, pendingFees]
+                }]
+            }
+        });
+
+        // ===== BAR CHART =====
+        new Chart(document.getElementById("barChart"), {
+            type: "bar",
+            data: {
+                labels: Object.keys(courseCount),
+                datasets: [{
+                    label: "Students",
+                    data: Object.values(courseCount)
+                }]
+            }
+        });
+
+    }catch{
+        showToast("Dashboard load failed ❌");
     }
+
+    hideLoader();
 }
+
+// ===== DARK MODE =====
+function toggleDark(){
+    document.body.classList.toggle("dark");
+}
+
+// ===== START =====
+loadDashboard();

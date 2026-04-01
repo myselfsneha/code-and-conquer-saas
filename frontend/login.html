@@ -1,33 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+<title>Login</title>
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body {
+height:100vh;
+display:flex;
+}
+
+.left {
+flex:1;
+background:linear-gradient(135deg,#3b82f6,#6366f1);
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+.right {
+flex:1;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+</style>
+
 </head>
 
-<body class="bg-light d-flex justify-content-center align-items-center" style="height:100vh;">
+<body>
 
-<div class="card p-4 shadow" style="width: 350px;">
+<div class="left">
+<h1>🚀 Code & Conquer</h1>
+<h1>Multi-tenant Project
+  student managemnet system
+</h1>
+</div>
 
-  <h3 class="text-center mb-3">Login 🔐</h3>
+<div class="right">
 
-  <!-- ROLE SELECT -->
-  <select id="role" class="form-select mb-2">
-    <option value="">Login As</option>
-    <option value="admin">Admin 👑</option>
-    <option value="tenant">Tenant 🏫</option>
-    <option value="student">Student 👨‍🎓</option>
-  </select>
+<div class="card p-4 shadow">
 
-  <input type="email" id="email" class="form-control mb-2" placeholder="Email">
-  <input type="password" id="password" class="form-control mb-3" placeholder="Password">
+<h3>Login</h3>
 
-  <button onclick="loginUser()" class="btn btn-primary w-100">Login</button>
+<select class="form-select mb-2">
+<option>Login As</option>
+<option>Student</option>
+<option>College</option>
+</select>
+
+<input class="form-control mb-2" placeholder="Email">
+<input type="password" class="form-control mb-2" placeholder="Password">
+
+<button class="btn btn-primary w-100">Login</button>
+
+<p class="mt-2 text-center">
+<a href="register.html">Register</a>
+</p>
 
 </div>
 
+</div>
+
+<script src="config.js"></script>
+<script src="common.js"></script>
 <script src="login.js"></script>
 
 </body>

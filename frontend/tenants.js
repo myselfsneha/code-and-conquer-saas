@@ -1,151 +1,94 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+checkAuth();
 
-// TEMP TOKEN (remove later)
-if (!localStorage.getItem("token")) {
-    localStorage.setItem("token", "test123");
+let tenants = JSON.parse(localStorage.getItem("tenants")) || [];
+
+function saveTenants(){
+    localStorage.setItem("tenants", JSON.stringify(tenants));
 }
 
-// =====================
-// LOAD
-// =====================
-document.addEventListener("DOMContentLoaded", () => {
-    fetchTenants();
-});
+// ===== RENDER =====
+function renderTenants(){
+    let table = document.getElementById("tenantTable");
+    let search = document.getElementById("searchTenant").value.toLowerCase();
 
-// =====================
-// FETCH TENANTS
-// =====================
-async function fetchTenants() {
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let courses = JSON.parse(localStorage.getItem("courses")) || [];
 
-    const token = localStorage.getItem("token");
+    table.innerHTML = "";
 
-    try {
-        const res = await fetch(API + "/tenants", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
+    let filtered = tenants.filter(t => 
+        t.name.toLowerCase().includes(search)
+    );
 
-        const data = await res.json();
-        const tenants = data.tenants || data;
-
-        renderTenants(tenants);
-
-    } catch (err) {
-        console.error(err);
-        alert("Error loading tenants");
-    }
-}
-
-// =====================
-// RENDER TABLE
-// =====================
-function renderTenants(tenants) {
-
-    const table = document.getElementById("tenantTable");
-
-    if (!tenants.length) {
-        table.innerHTML = `<tr><td colspan="6">No tenants found</td></tr>`;
+    if(filtered.length === 0){
+        table.innerHTML = `<tr><td colspan="7">No tenants found 😕</td></tr>`;
         return;
     }
 
-    let rows = "";
+    filtered.forEach((t, index) => {
 
-    tenants.forEach(t => {
-        rows += `
+        // fake mapping for now (later backend)
+        let studentCount = students.length;
+        let courseCount = courses.length;
+
+        table.innerHTML += `
         <tr>
-            <td>${t.tenant_id || "-"}</td>
+            <td>${index+1}</td>
             <td>${t.name}</td>
             <td>${t.email}</td>
-            <td>${t.college || "-"}</td>
-            <td>${t.phone || "-"}</td>
+            <td>${studentCount}</td>
+            <td>${courseCount}</td>
             <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteTenant(${t.tenant_id})">
-                    Delete
-                </button>
+                <span class="badge bg-${t.status === "Active" ? "success" : "secondary"}">
+                    ${t.status}
+                </span>
             </td>
-        </tr>
-        `;
+            <td>
+                <button class="btn btn-warning btn-sm" onclick="toggleStatus(${index})">Toggle</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTenant(${index})">Delete</button>
+            </td>
+        </tr>`;
     });
-
-    table.innerHTML = rows;
 }
 
-// =====================
-// ADD TENANT
-// =====================
-async function addTenant() {
+// ===== ADD =====
+function addTenant(){
+    let name = document.getElementById("tenantName").value;
+    let email = document.getElementById("tenantEmail").value;
+    let status = document.getElementById("tenantStatus").value;
 
-    const name = document.getElementById("tenantName").value;
-    const email = document.getElementById("tenantEmail").value;
-    const college = document.getElementById("tenantCollege").value;
-    const phone = document.getElementById("tenantPhone").value;
-
-    const token = localStorage.getItem("token");
-
-    if (!name || !email || !college || !phone) {
+    if(!name || !email){
         alert("Fill all fields");
         return;
     }
 
-    try {
-        await fetch(API + "/tenants", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                college,
-                phone
-            })
-        });
+    tenants.push({
+        name,
+        email,
+        status
+    });
 
-        alert("Tenant added");
-        closeModal();
-        fetchTenants();
-
-    } catch (err) {
-        console.error(err);
-        alert("Error adding tenant");
-    }
+    saveTenants();
+    closeModal();
+    renderTenants();
 }
 
-// =====================
-// DELETE TENANT
-// =====================
-async function deleteTenant(id) {
-
-    const token = localStorage.getItem("token");
-
-    if (!confirm("Delete tenant?")) return;
-
-    try {
-        await fetch(`${API}/tenants/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        alert("Deleted");
-        fetchTenants();
-
-    } catch (err) {
-        console.error(err);
-        alert("Error deleting");
-    }
+// ===== DELETE =====
+function deleteTenant(index){
+    tenants.splice(index,1);
+    saveTenants();
+    renderTenants();
 }
 
-// =====================
-// MODAL
-// =====================
-function openModal(){
-    document.getElementById("tenantModal").style.display = "flex";
+// ===== TOGGLE STATUS =====
+function toggleStatus(index){
+    tenants[index].status = tenants[index].status === "Active" ? "Inactive" : "Active";
+    saveTenants();
+    renderTenants();
 }
 
-function closeModal(){
-    document.getElementById("tenantModal").style.display = "none";
-}
+// ===== SEARCH =====
+document.getElementById("searchTenant").addEventListener("input", renderTenants);
+
+// ===== INIT =====
+renderTenants();

@@ -11,6 +11,11 @@
 
 <body>
 
+<!-- LOADER -->
+<div class="loader" id="loader">
+    <div></div>
+</div>
+
 <div class="sidebar">
 <h2>🎓 Code & Conquer</h2>
 <a href="dashboard.html" class="active">📊 Dashboard</a>
@@ -25,26 +30,25 @@
 
 <div class="main">
 
-<h4 id="greeting" style="margin-bottom:10px;"></h4>
 <h2>Dashboard 📊</h2>
 
 <!-- CARDS -->
 <div class="row">
 
 <div class="col-md-3">
-<div class="card-custom">👨‍🎓 Total Students<br><b>120</b></div>
+<div class="card-custom">👨‍🎓 Total Students<br><b id="totalStudents">0</b></div>
 </div>
 
 <div class="col-md-3">
-<div class="card-custom">💰 Fees<br><b>₹1,20,000</b></div>
+<div class="card-custom">💰 Fees<br><b id="totalFees">₹0</b></div>
 </div>
 
 <div class="col-md-3">
-<div class="card-custom">📉 Pending<br><b>₹30,000</b></div>
+<div class="card-custom">📉 Pending<br><b id="pendingFees">₹0</b></div>
 </div>
 
 <div class="col-md-3">
-<div class="card-custom">📚 Courses<br><b>3</b></div>
+<div class="card-custom">📚 Courses<br><b id="totalCourses">0</b></div>
 </div>
 
 </div>
@@ -66,37 +70,15 @@
 <div class="card-custom mt-4">
 <h5>Recent Students</h5>
 <table class="table">
-<tr><td>Tirthi</td><td>BCA</td></tr>
-<tr><td>Sneha</td><td>MCA</td></tr>
-<tr><td>Oshi</td><td>BSA</td></tr>
-<tr><td>Shivani</td><td>MCA</td></tr>
-<tr><td>Khushi</td><td>BSA</td></tr>
+<tbody id="recentStudents"></tbody>
 </table>
 </div>
 
 </div>
 
-<script>
-function toggleDark(){
-document.body.classList.toggle("dark");
-}
-
-new Chart(document.getElementById("pieChart"), {
-type: "pie",
-data: {
-labels: ["Paid","Pending"],
-datasets: [{data: [70,30]}]
-}
-});
-
-new Chart(document.getElementById("barChart"), {
-type: "bar",
-data: {
-labels: ["BCA","BBA","MCA"],
-datasets: [{data: [50,40,30]}]
-}
-});
-</script>
+<!-- SCRIPTS -->
+<script src="config.js"></script>
+<script src="common.js"></script>
 <script src="dashboard.js"></script>
 
 </body>

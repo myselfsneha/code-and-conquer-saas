@@ -1,143 +1,82 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+checkAuth();
 
-// TEMP BYPASS (remove later)
-if (!localStorage.getItem("token")) {
-    localStorage.setItem("token", "test123");
+let courses = JSON.parse(localStorage.getItem("courses")) || [];
+
+function saveCourses(){
+    localStorage.setItem("courses", JSON.stringify(courses));
 }
 
-// =====================
-// LOAD
-// =====================
-document.addEventListener("DOMContentLoaded", () => {
-    fetchCourses();
-});
+function renderCourses(){
+    let table = document.getElementById("courseTable");
+    let search = document.getElementById("searchCourse").value.toLowerCase();
 
-// =====================
-// FETCH COURSES
-// =====================
-async function fetchCourses() {
+    table.innerHTML = "";
 
-    const token = localStorage.getItem("token");
+    let filtered = courses.filter(c => 
+        c.name.toLowerCase().includes(search)
+    );
 
-    try {
-        const res = await fetch(API + "/courses", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        const data = await res.json();
-        const courses = data.courses || data;
-
-        renderCourses(courses);
-
-    } catch (err) {
-        console.error(err);
-        alert("Error loading courses");
-    }
-}
-
-// =====================
-// RENDER TABLE
-// =====================
-function renderCourses(courses) {
-
-    const table = document.getElementById("courseTable");
-
-    if (!courses.length) {
-        table.innerHTML = `<tr><td colspan="4">No courses found</td></tr>`;
+    if(filtered.length === 0){
+        table.innerHTML = `
+        <tr>
+            <td colspan="6">No courses found 😕</td>
+        </tr>`;
         return;
     }
 
-    let rows = "";
-
-    courses.forEach(c => {
-        rows += `
+    filtered.forEach((c, index) => {
+        table.innerHTML += `
         <tr>
-            <td>${c.course_id || "-"}</td>
-            <td>${c.course_name}</td>
+            <td>${index+1}</td>
+            <td>${c.name}</td>
             <td>${c.duration}</td>
+            <td>₹${c.fees}</td>
+            <td>${c.students || 0}</td>
             <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
+                <button class="btn btn-primary btn-sm" onclick="editCourse(${index})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCourse(${index})">Delete</button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     });
-
-    table.innerHTML = rows;
 }
 
-// =====================
-// ADD COURSE
-// =====================
-async function addCourse() {
+function addCourse(){
+    let name = document.getElementById("courseName").value;
+    let duration = document.getElementById("courseDuration").value;
+    let fees = document.getElementById("courseFees").value;
 
-    const name = document.getElementById("courseName").value;
-    const duration = document.getElementById("courseDuration").value;
-
-    const token = localStorage.getItem("token");
-
-    if (!name || !duration) {
+    if(!name || !duration || !fees){
         alert("Fill all fields");
         return;
     }
 
-    try {
-        await fetch(API + "/courses", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify({
-                course_name: name,
-                duration: duration
-            })
-        });
+    courses.push({
+        name,
+        duration,
+        fees,
+        students: 0
+    });
 
-        alert("Course added");
-        closeModal();
-        fetchCourses();
+    saveCourses();
+    closeModal();
+    renderCourses();
+}
 
-    } catch (err) {
-        console.error(err);
-        alert("Error adding course");
+function deleteCourse(index){
+    courses.splice(index,1);
+    saveCourses();
+    renderCourses();
+}
+
+function editCourse(index){
+    let newName = prompt("Enter new course name", courses[index].name);
+    if(newName){
+        courses[index].name = newName;
+        saveCourses();
+        renderCourses();
     }
 }
 
-// =====================
-// DELETE
-// =====================
-async function deleteCourse(id) {
+document.getElementById("searchCourse").addEventListener("input", renderCourses);
 
-    const token = localStorage.getItem("token");
-
-    if (!confirm("Delete course?")) return;
-
-    try {
-        await fetch(`${API}/courses/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        alert("Deleted");
-        fetchCourses();
-
-    } catch (err) {
-        console.error(err);
-        alert("Error deleting");
-    }
-}
-
-// =====================
-// MODAL
-// =====================
-function openModal(){
-    document.getElementById("courseModal").style.display = "flex";
-}
-
-function closeModal(){
-    document.getElementById("courseModal").style.display = "none";
-}
+renderCourses();

@@ -1,209 +1,97 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+checkAuth();
 
-// TEMP LOGIN (REMOVE LATER)
-if (!localStorage.getItem("token")) {
-    localStorage.setItem("token", "test123");
+let students = JSON.parse(localStorage.getItem("students")) || [];
+
+function saveStudents(){
+    localStorage.setItem("students", JSON.stringify(students));
 }
 
-let currentPage = 1;
-const limit = 5;
+function loadCourses(){
+    let courses = JSON.parse(localStorage.getItem("courses")) || [];
 
-// ==========================
-// LOAD
-// ==========================
-document.addEventListener("DOMContentLoaded", () => {
-    fetchCourses();   // 🔥 NEW
-    fetchStudents(1);
-});
+    let courseDropdown = document.getElementById("course");
+    let filterDropdown = document.getElementById("filterCourse");
 
-// ==========================
-// FETCH COURSES (NEW 🔥)
-// ==========================
-async function fetchCourses() {
+    courseDropdown.innerHTML = "";
+    filterDropdown.innerHTML = `<option value="">All Courses</option>`;
 
-    const token = localStorage.getItem("token");
-
-    try {
-        const res = await fetch(API + "/courses", {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        const data = await res.json();
-        const courses = data.courses || data;
-
-        const dropdown = document.getElementById("studentCourse");
-
-        dropdown.innerHTML = `<option value="">Select Course</option>`;
-
-        courses.forEach(c => {
-            dropdown.innerHTML += `
-                <option value="${c.course_name}">
-                    ${c.course_name}
-                </option>
-            `;
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Error loading courses");
-    }
+    courses.forEach(c => {
+        courseDropdown.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        filterDropdown.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+    });
 }
 
-// ==========================
-// FETCH STUDENTS
-// ==========================
-async function fetchStudents(page = 1) {
+function renderStudents(){
+    showLoader();
 
-    currentPage = page;
+    let table = document.getElementById("tableBody");
 
-    const token = localStorage.getItem("token");
+    let search = document.getElementById("search").value.toLowerCase();
+    let courseFilter = document.getElementById("filterCourse").value;
+    let yearFilter = document.getElementById("filterYear").value;
 
-    const search = document.getElementById("search")?.value || "";
-    const course = document.getElementById("filterCourse")?.value || "";
-    const year = document.getElementById("filterYear")?.value || "";
+    table.innerHTML = "";
 
-    let url = `${API}/students?page=${page}&limit=${limit}`;
+    let filtered = students.filter(s => 
+        s.name.toLowerCase().includes(search) &&
+        (courseFilter === "" || s.course === courseFilter) &&
+        (yearFilter === "" || s.year === yearFilter)
+    );
 
-    if (search) url += `&search=${encodeURIComponent(search)}`;
-    if (course) url += `&course=${course}`;
-    if (year) url += `&year=${year}`;
-
-    try {
-        const res = await fetch(url, {
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        const data = await res.json();
-        const students = data.students || data;
-
-        renderTable(students);
-
-    } catch (err) {
-        console.error(err);
-        alert("Error fetching students");
-    }
-}
-
-// ==========================
-// TABLE
-// ==========================
-function renderTable(students) {
-
-    const table = document.getElementById("tableBody");
-
-    if (!students.length) {
-        table.innerHTML = `
-        <tr>
-            <td colspan="8">No students found</td>
-        </tr>`;
+    if(filtered.length === 0){
+        table.innerHTML = `<tr><td colspan="8">No students found 😕</td></tr>`;
+        hideLoader();
         return;
     }
 
-    let rows = "";
-
-    students.forEach(s => {
-
-        rows += `
+    filtered.forEach((s, index) => {
+        table.innerHTML += `
         <tr>
-            <td>${s.student_id || "-"}</td>
+            <td>${index+1}</td>
             <td>${s.name}</td>
             <td>${s.email}</td>
             <td>${s.course}</td>
             <td>${s.year}</td>
-            <td>₹${s.total_paid || 0}</td>
-            <td>${s.attendance_percentage || 0}%</td>
+            <td>₹${s.fees}</td>
+            <td>${s.attendance}%</td>
             <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.student_id})">
-                    Delete
-                </button>
+                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${index})">Delete</button>
             </td>
-        </tr>
-        `;
+        </tr>`;
     });
 
-    table.innerHTML = rows;
+    hideLoader();
 }
 
-// ==========================
-// ADD STUDENT
-// ==========================
-async function addStudent() {
+function addStudent(){
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value;
+    let course = document.getElementById("course").value;
+    let year = document.getElementById("year").value;
+    let fees = document.getElementById("fees").value;
+    let attendance = document.getElementById("attendance").value;
 
-    const name = document.getElementById("studentName").value;
-    const email = document.getElementById("studentEmail").value;
-    const course = document.getElementById("studentCourse").value;
-    const year = document.getElementById("studentYear").value;
-
-    const token = localStorage.getItem("token");
-
-    if (!name || !email || !course || !year) {
-        alert("Fill all fields");
+    if(!name || !email || !course || !year){
+        showToast("Fill required fields ❌", "error");
         return;
     }
 
-    try {
-        await fetch(`${API}/students`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: "Bearer " + token
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                course,
-                year,
-                fees_total: 50000
-            })
-        });
+    students.push({ name, email, course, year, fees, attendance });
 
-        alert("Student added");
-        closeModal();
-        fetchStudents(1);
+    saveStudents();
 
-    } catch (err) {
-        console.error(err);
-        alert("Error adding student");
-    }
+    showToast("Student Added ✅");
+
+    closeModal();
+    renderStudents();
 }
 
-// ==========================
-// DELETE
-// ==========================
-async function deleteStudent(id) {
-
-    const token = localStorage.getItem("token");
-
-    if (!confirm("Delete student?")) return;
-
-    try {
-        await fetch(`${API}/delete-student/${id}`, {
-            method: "DELETE",
-            headers: {
-                Authorization: "Bearer " + token
-            }
-        });
-
-        alert("Deleted");
-        fetchStudents(currentPage);
-
-    } catch (err) {
-        console.error(err);
-        alert("Error deleting");
-    }
+function deleteStudent(index){
+    students.splice(index,1);
+    saveStudents();
+    showToast("Deleted ❌", "error");
+    renderStudents();
 }
 
-// ==========================
-// MODAL
-// ==========================
-function openModal(){
-    document.getElementById("studentModal").style.display = "flex";
-}
-
-function closeModal(){
-    document.getElementById("studentModal").style.display = "none";
-}
+loadCourses();
+renderStudents();

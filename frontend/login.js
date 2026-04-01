@@ -1,49 +1,60 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+// ❌ REMOVE THIS LINE (important)
+// const API = "https://code-and-conquer-saas.onrender.com";
 
 async function loginUser() {
-
-    const role = document.getElementById("role").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const btn = document.querySelector("button");
 
-    if (!role || !email || !password) {
-        alert("Fill all fields");
+    if (!email || !password) {
+        showToast("Enter email & password ❌", "error");
         return;
     }
 
     try {
+        btn.innerText = "Logging in...";
+        btn.disabled = true;
+
         const res = await fetch(`${API}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ email, password, role })
+            body: JSON.stringify({ email, password })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.message || "Login failed");
+            showToast(data.message || "Login failed ❌", "error");
+            btn.innerText = "Login";
+            btn.disabled = false;
             return;
         }
 
-        // ✅ SAVE TOKEN + ROLE
+        // ✅ SAVE TOKEN + TIME (VERY IMPORTANT)
         localStorage.setItem("token", data.token);
-        localStorage.setItem("role", role);
+        localStorage.setItem("loginTime", new Date().getTime());
 
-        // ✅ REDIRECT BASED ON ROLE
-        if (role === "admin") {
+        showToast("Login successful ✅");
+
+        setTimeout(() => {
             window.location.href = "dashboard.html";
-        } 
-        else if (role === "tenant") {
-            window.location.href = "dashboard.html";
-        } 
-        else {
-            window.location.href = "dashboard.html";
-        }
+        }, 1000);
 
     } catch (err) {
         console.error(err);
-        alert("Server error");
+        showToast("Server error ❌", "error");
+        btn.innerText = "Login";
+        btn.disabled = false;
     }
 }
+
+// ❌ REMOVE OLD showToast (we now use common.js)
+
+// ENTER KEY LOGIN
+document.addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+        loginUser();
+    }
+});

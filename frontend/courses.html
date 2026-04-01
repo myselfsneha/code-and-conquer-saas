@@ -10,10 +10,12 @@
 
 <body>
 
-<!-- SIDEBAR -->
+    <div class="loader" id="loader">
+    <div></div>
+</div>
+
 <div class="sidebar">
 <h2>🎓 Code & Conquer</h2>
-
 <a href="dashboard.html">📊 Dashboard</a>
 <a href="students.html">👨‍🎓 Students</a>
 <a href="courses.html" class="active">📚 Courses</a>
@@ -24,25 +26,31 @@
 </label>
 <p>Dark Mode</p>
 
+<br>
+<button class="btn btn-danger w-100 mt-3" onclick="logout()">🚪 Logout</button>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
 <div class="card-custom">
 
 <h3>Courses 📚</h3>
 
-<!-- ADD BUTTON -->
+<!-- 🔍 SEARCH -->
+<input type="text" id="searchCourse" class="form-control mb-3" placeholder="Search course by name">
+
+<!-- ➕ ADD BUTTON -->
 <button class="btn btn-success mb-3" onclick="openModal()">+ Add Course</button>
 
-<!-- TABLE -->
+<!-- 📊 TABLE -->
 <table class="table text-center">
 <thead>
 <tr>
 <th>ID</th>
 <th>Course Name</th>
 <th>Duration</th>
+<th>Fees</th>
+<th>Students</th>
 <th>Action</th>
 </tr>
 </thead>
@@ -60,8 +68,9 @@
 
 <h5>Add Course</h5>
 
-<input id="courseName" class="form-control mb-2" placeholder="Course Name">
-<input id="courseDuration" class="form-control mb-2" placeholder="Duration (e.g. 3 Years)">
+<input class="form-control mb-2" id="courseName" placeholder="Course Name">
+<input class="form-control mb-2" id="courseDuration" placeholder="Duration (e.g. 3 Years)">
+<input class="form-control mb-2" id="courseFees" placeholder="Fees">
 
 <button class="btn btn-success w-100 mb-2" onclick="addCourse()">Add</button>
 <button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
@@ -75,7 +84,23 @@
 function toggleDark(){
 document.body.classList.toggle("dark");
 }
+
+function openModal(){
+document.getElementById("courseModal").style.display="flex";
+}
+
+function closeModal(){
+document.getElementById("courseModal").style.display="none";
+}
+
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
+}
 </script>
 
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="common.js"></script>
 </body>
 </html>
