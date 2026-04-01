@@ -140,7 +140,7 @@ body {
 }
 
 /* ===============================
-   CHART (FIXED SIZE ✅)
+   CHART
 =============================== */
 .chart-container {
     margin-top: 30px;
@@ -148,15 +148,14 @@ body {
     border-radius: 14px;
     background: white;
     box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-
-    max-width: 700px;       /* 👈 FIX */
+    max-width: 700px;
     margin-left: auto;
     margin-right: auto;
 }
 
 #dashboardChart {
     width: 100% !important;
-    height: 300px !important;   /* 👈 FIX */
+    height: 300px !important;
 }
 
 /* ===============================
@@ -285,7 +284,9 @@ input {
     }
 }
 
-/* ===== LOADER ===== */
+/* ===============================
+   LOADER
+=============================== */
 .loader {
     position: fixed;
     top: 0;
@@ -308,52 +309,9 @@ input {
     animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    100% { transform: rotate(360deg); }
-}
-
-/* ===== TOAST ===== */
-.toast-custom {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background: #00f2fe;
-    color: black;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: bold;
-    z-index: 9999;
-    animation: fadeIn 0.5s;
-}
-
-/* ===== LOADER ===== */
-.loader {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    top: 0;
-    left: 0;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-}
-
-.loader div {
-    width: 50px;
-    height: 50px;
-    border: 5px solid white;
-    border-top: 5px solid #4facfe;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    100% { transform: rotate(360deg); }
-}
-
-/* ===== TOAST ===== */
+/* ===============================
+   TOAST
+=============================== */
 .toast-box {
     position: fixed;
     bottom: 20px;
@@ -373,4 +331,16 @@ input {
 
 .toast-error {
     background: #dc3545;
+}
+
+/* ===============================
+   ANIMATIONS
+=============================== */
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from {opacity: 0; transform: translateY(10px);}
+    to {opacity: 1; transform: translateY(0);}
 }
