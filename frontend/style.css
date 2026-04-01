@@ -122,15 +122,19 @@ table {
 /* ===============================
    DARK MODE
 =============================== */
-.dark-mode {
-    background: #121212;
+.dark .sidebar {
+    background: linear-gradient(180deg, #111, #222);
+}
+
+.dark table {
+    background: #1e1e1e;
     color: white;
 }
 
-.dark-mode .card-custom,
-.dark-mode .modal-content {
-    background: #1e1e1e;
+.dark input {
+    background: #2a2a2a;
     color: white;
+    border: 1px solid #555;
 }
 
 /* ===============================
