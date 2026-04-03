@@ -52,16 +52,55 @@ font-size:14px;
 </div>
 
 <script>
-function validateForm(){
-const pass = document.getElementById("password").value;
-const confirm = document.getElementById("confirmPassword").value;
+const API = "https://code-and-conquer-saas-11g6.onrender.com";
 
-if(pass !== confirm){
-document.getElementById("errorMsg").innerText = "Passwords do not match!";
-return;
-}
+async function validateAndRegister() {
 
-alert("Registered Successfully!");
+  const role = document.getElementById("role").value;
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const confirm = document.getElementById("confirmPassword").value;
+
+  if (!role || !name || !email || !password || !confirm) {
+    document.getElementById("errorMsg").innerText = "All fields required ❌";
+    return;
+  }
+
+  if (password !== confirm) {
+    document.getElementById("errorMsg").innerText = "Passwords do not match!";
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/register-admin`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+        tenant_id: 1   // temporary
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      document.getElementById("errorMsg").innerText = data.message || "Registration failed ❌";
+      return;
+    }
+
+    alert("Registered Successfully ✅");
+
+    window.location.href = "login.html";
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("errorMsg").innerText = "Server error ❌";
+  }
 }
 </script>
 

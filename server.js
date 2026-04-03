@@ -68,50 +68,56 @@ app.post("/register-admin", async (req, res) => {
 
     db.query(
       `INSERT INTO users (name, email, password, role, tenant_id)
-       VALUES (?, ?, ?, 'admin', ?)`,
+       VALUES (?, ?, ?, 'college', ?)`,   // ✅ FIXED HERE
       [name, email, hashed, tenant_id],
       (err) => {
         if (err) return res.status(500).json(err);
-        res.json({ message: "Admin Registered" });
+        res.json({ message: "College Registered" });
       }
     );
   } catch (err) {
     res.status(500).json(err);
   }
 });
-
 /* ================= LOGIN ================= */
 
 app.post("/login", (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
-  db.query("SELECT * FROM users WHERE email=?", [email], async (err, results) => {
-    if (err) return res.status(500).json(err);
+  if (!email || !password || !role) {
+    return res.status(400).json({ message: "All fields required" });
+  }
 
-    if (results.length === 0) {
-      return res.status(400).json({ message: "User not found" });
+  db.query(
+    "SELECT * FROM users WHERE email=? AND role=?",
+    [email, role],
+    async (err, results) => {
+      if (err) return res.status(500).json(err);
+
+      if (results.length === 0) {
+        return res.status(400).json({ message: "User not found" });
+      }
+
+      const user = results[0];
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        return res.status(400).json({ message: "Invalid password" });
+      }
+
+      const token = jwt.sign(
+        {
+          user_id: user.user_id,
+          tenant_id: user.tenant_id,
+          role: user.role
+        },
+        SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      res.json({ token });
     }
-
-    const user = results[0];
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    // ✅ IMPORTANT: include role
-    const token = jwt.sign(
-      {
-        user_id: user.user_id,
-        tenant_id: user.tenant_id,
-        role: user.role
-      },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    res.json({ token });
-  });
+  );
 });
 
 /* ================= GET STUDENTS ================= */
@@ -204,7 +210,7 @@ WHERE s.tenant_id = ?
 /* ================= ADD STUDENT ================= */
 
 app.post("/students", authMiddleware, (req, res) => {
-  if (req.user.role !== "admin") {
+  if (req.user.role !== "college") {   // ✅ FIXED
     return res.status(403).json({ message: "Access denied" });
   }
 
@@ -241,7 +247,7 @@ app.get("/courses", authMiddleware, (req, res) => {
 
 /* ADD COURSE */
 app.post("/courses", authMiddleware, (req, res) => {
-  if (req.user.role !== "admin") {
+  if (req.user.role !== "college") {   // ✅ FIXED
     return res.status(403).json({ message: "Access denied" });
   }
 

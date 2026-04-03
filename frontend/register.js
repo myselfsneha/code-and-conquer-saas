@@ -1,31 +1,38 @@
-const API = "https://code-and-conquer-saas.onrender.com";
+const API = "https://code-and-conquer-saas-11g6.onrender.com";
 
 async function registerUser() {
+    const name = document.getElementById("name").value;
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const tenant_id = document.getElementById("tenant").value;
 
-    if (!email || !password) {
-        showToast("Fill all fields");
+    if (!name || !email || !password || !tenant_id) {
+        showToast("Fill all fields ❌");
         return;
     }
 
     try {
-        const res = await fetch(`${API}/register`, {
+        const res = await fetch(`${API}/register-admin`, {   // ✅ FIXED ROUTE
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({
+                name,
+                email,
+                password,
+                tenant_id
+            })
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-            showToast(data.message || "Registration failed");
+            showToast(data.message || "Registration failed ❌");
             return;
         }
 
-        showToast("Account created!");
+        showToast("Account created! ✅");
 
         setTimeout(() => {
             window.location.href = "login.html";
@@ -33,16 +40,6 @@ async function registerUser() {
 
     } catch (err) {
         console.error(err);
-        showToast("Server error");
+        showToast("Server error ❌");
     }
-}
-
-function showToast(msg) {
-    const toast = document.getElementById("toast");
-    toast.innerText = msg;
-    toast.style.display = "block";
-
-    setTimeout(() => {
-        toast.style.display = "none";
-    }, 3000);
 }
