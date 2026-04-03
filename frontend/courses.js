@@ -1,82 +1,101 @@
 checkAuth();
 
-let courses = JSON.parse(localStorage.getItem("courses")) || [];
+async function loadCourses() {
+    showLoader();
 
-function saveCourses(){
-    localStorage.setItem("courses", JSON.stringify(courses));
+    try {
+        const res = await fetch(`${API}/courses`, {
+            headers: {
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            }
+        });
+
+        const data = await res.json();
+        renderCourses(data);
+    } catch (err) {
+        console.error(err);
+        showToast("Error loading courses ❌", "error");
+    }
+
+    hideLoader();
 }
 
-function renderCourses(){
+function renderCourses(courses) {
     let table = document.getElementById("courseTable");
     let search = document.getElementById("searchCourse").value.toLowerCase();
 
     table.innerHTML = "";
 
-    let filtered = courses.filter(c => 
+    let filtered = courses.filter(c =>
         c.name.toLowerCase().includes(search)
     );
 
-    if(filtered.length === 0){
-        table.innerHTML = `
-        <tr>
-            <td colspan="6">No courses found 😕</td>
-        </tr>`;
+    if (filtered.length === 0) {
+        table.innerHTML = `<tr><td colspan="6">No courses found 😕</td></tr>`;
         return;
     }
 
     filtered.forEach((c, index) => {
         table.innerHTML += `
         <tr>
-            <td>${index+1}</td>
+            <td>${index + 1}</td>
             <td>${c.name}</td>
             <td>${c.duration}</td>
             <td>₹${c.fees}</td>
-            <td>${c.students || 0}</td>
+            <td>0</td>
             <td>
-                <button class="btn btn-primary btn-sm" onclick="editCourse(${index})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteCourse(${index})">Delete</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
             </td>
         </tr>`;
     });
 }
 
-function addCourse(){
+async function addCourse() {
     let name = document.getElementById("courseName").value;
     let duration = document.getElementById("courseDuration").value;
     let fees = document.getElementById("courseFees").value;
 
-    if(!name || !duration || !fees){
-        alert("Fill all fields");
+    if (!name || !duration || !fees) {
+        showToast("Fill all fields ❌", "error");
         return;
     }
 
-    courses.push({
-        name,
-        duration,
-        fees,
-        students: 0
-    });
+    try {
+        await fetch(`${API}/courses`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
+            body: JSON.stringify({ name, duration, fees })
+        });
 
-    saveCourses();
-    closeModal();
-    renderCourses();
-}
-
-function deleteCourse(index){
-    courses.splice(index,1);
-    saveCourses();
-    renderCourses();
-}
-
-function editCourse(index){
-    let newName = prompt("Enter new course name", courses[index].name);
-    if(newName){
-        courses[index].name = newName;
-        saveCourses();
-        renderCourses();
+        showToast("Course added ✅");
+        closeModal();
+        loadCourses();
+    } catch (err) {
+        console.error(err);
+        showToast("Error adding course ❌", "error");
     }
 }
 
-document.getElementById("searchCourse").addEventListener("input", renderCourses);
+async function deleteCourse(id) {
+    try {
+        await fetch(`${API}/courses/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            }
+        });
 
-renderCourses();
+        showToast("Course deleted 🗑️");
+        loadCourses();
+    } catch (err) {
+        console.error(err);
+        showToast("Error deleting course ❌", "error");
+    }
+}
+
+document.getElementById("searchCourse").addEventListener("input", loadCourses);
+
+loadCourses();

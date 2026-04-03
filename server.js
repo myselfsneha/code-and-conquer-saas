@@ -14,7 +14,13 @@ app.use(cors({ origin: "*" }));
 
 /* ================= DATABASE ================= */
 
-const db = mysql.createConnection(process.env.MYSQLPUBLICURL);
+const db = mysql.createConnection({
+  uri: process.env.MYSQLPUBLICURL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
 
 db.connect((err) => {
   if (err) {
@@ -215,6 +221,54 @@ app.post("/students", authMiddleware, (req, res) => {
     (err) => {
       if (err) return res.status(500).json(err);
       res.json({ message: "Student added" });
+    }
+  );
+});
+
+/* ================= COURSES ================= */
+
+/* GET COURSES */
+app.get("/courses", authMiddleware, (req, res) => {
+  db.query(
+    "SELECT * FROM courses WHERE tenant_id=?",
+    [req.user.tenant_id],
+    (err, results) => {
+      if (err) return res.status(500).json(err);
+      res.json(results);
+    }
+  );
+});
+
+/* ADD COURSE */
+app.post("/courses", authMiddleware, (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { name, duration, fees } = req.body;
+
+  if (!name || !duration || !fees) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  db.query(
+    "INSERT INTO courses (name, duration, fees, tenant_id) VALUES (?, ?, ?, ?)",
+    [name, duration, fees, req.user.tenant_id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Course added" });
+    }
+  );
+});
+
+/* DELETE COURSE */
+app.delete("/courses/:id", authMiddleware, (req, res) => {
+  db.query(
+    "DELETE FROM courses WHERE course_id=? AND tenant_id=?",
+    [req.params.id, req.user.tenant_id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Course deleted" });
     }
   );
 });

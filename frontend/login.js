@@ -1,9 +1,7 @@
-// ❌ REMOVE THIS LINE (important)
-// const API = "https://code-and-conquer-saas.onrender.com";
-
 async function loginUser() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+    const role = document.getElementById("role").value;
     const btn = document.querySelector("button");
 
     if (!email || !password) {
@@ -20,7 +18,7 @@ async function loginUser() {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify({ email, password, role })
         });
 
         const data = await res.json();
@@ -32,7 +30,7 @@ async function loginUser() {
             return;
         }
 
-        // ✅ SAVE TOKEN + TIME (VERY IMPORTANT)
+        // ✅ Save token
         localStorage.setItem("token", data.token);
         localStorage.setItem("loginTime", new Date().getTime());
 
@@ -49,8 +47,6 @@ async function loginUser() {
         btn.disabled = false;
     }
 }
-
-// ❌ REMOVE OLD showToast (we now use common.js)
 
 // ENTER KEY LOGIN
 document.addEventListener("keypress", function(e) {

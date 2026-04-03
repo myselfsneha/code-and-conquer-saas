@@ -7,24 +7,25 @@
 
 <style>
 body {
-height:100vh;
-display:flex;
+  height:100vh;
+  display:flex;
 }
 
 .left {
-flex:1;
-background:linear-gradient(135deg,#3b82f6,#6366f1);
-color:white;
-display:flex;
-align-items:center;
-justify-content:center;
+  flex:1;
+  background:linear-gradient(135deg,#3b82f6,#6366f1);
+  color:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction: column;
 }
 
 .right {
-flex:1;
-display:flex;
-align-items:center;
-justify-content:center;
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 </style>
 
@@ -33,35 +34,31 @@ justify-content:center;
 <body>
 
 <div class="left">
-<h1>🚀 Code & Conquer</h1>
-<h1>Multi-tenant Project
-  student managemnet system
-</h1>
+  <h1>🚀 Code & Conquer</h1>
+  <h4>Multi-tenant Student Management System</h4>
 </div>
 
 <div class="right">
+  <div class="card p-4 shadow" style="width:300px">
 
-<div class="card p-4 shadow">
+    <h3>Login</h3>
 
-<h3>Login</h3>
+    <select id="role" class="form-select mb-2">
+      <option value="">Login As</option>
+      <option value="student">Student</option>
+      <option value="college">College</option>
+    </select>
 
-<select class="form-select mb-2">
-<option>Login As</option>
-<option>Student</option>
-<option>College</option>
-</select>
+    <input id="email" class="form-control mb-2" placeholder="Email">
+    <input id="password" type="password" class="form-control mb-2" placeholder="Password">
 
-<input class="form-control mb-2" placeholder="Email">
-<input type="password" class="form-control mb-2" placeholder="Password">
+    <button onclick="loginUser()" class="btn btn-primary w-100">Login</button>
 
-<button class="btn btn-primary w-100">Login</button>
+    <p class="mt-2 text-center">
+      <a href="register.html">Register</a>
+    </p>
 
-<p class="mt-2 text-center">
-<a href="register.html">Register</a>
-</p>
-
-</div>
-
+  </div>
 </div>
 
 <script src="config.js"></script>
