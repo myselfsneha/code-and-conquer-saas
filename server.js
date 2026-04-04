@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 
 require("dotenv").config();
-
 const SECRET_KEY = "codeandconquer_secret";
 
 app.use(express.json());
@@ -14,12 +13,7 @@ app.use(cors({ origin: "*" }));
 
 /* ================= DATABASE ================= */
 
-const db = mysql.createConnection({
-  uri: process.env.MYSQLPUBLICURL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+const db = mysql.createConnection(process.env.MYSQLPUBLICURL);
 
 
 db.connect((err) => {
@@ -279,6 +273,31 @@ app.delete("/courses/:id", authMiddleware, (req, res) => {
   );
 });
 
+/* ================= ADD FEES ================= */
+
+app.post("/fees", authMiddleware, (req, res) => {
+  if (req.user.role !== "college") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { student_id, amount_paid } = req.body;
+
+  if (!student_id || !amount_paid) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  db.query(
+    "INSERT INTO fees (student_id, amount_paid, tenant_id) VALUES (?, ?, ?)",
+    [student_id, amount_paid, req.user.tenant_id],
+    (err) => {
+      if (err) {
+        console.error("FEES ERROR:", err);
+        return res.status(500).json({ message: err.message });
+      }
+      res.json({ message: "Fees added" });
+    }
+  );
+});
 /* ================= SERVER ================= */
 
 const PORT = process.env.PORT || 3000;
