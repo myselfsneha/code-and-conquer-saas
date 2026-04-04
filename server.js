@@ -298,6 +298,32 @@ app.post("/fees", authMiddleware, (req, res) => {
     }
   );
 });
+
+/* ================= ADD ATTENDANCE ================= */
+
+app.post("/attendance", authMiddleware, (req, res) => {
+  if (req.user.role !== "college") {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  const { student_id, status, date } = req.body;
+
+  if (!student_id || !status || !date) {
+    return res.status(400).json({ message: "All fields required" });
+  }
+
+  db.query(
+    "INSERT INTO attendance (student_id, status, date, tenant_id) VALUES (?, ?, ?, ?)",
+    [student_id, status, date, req.user.tenant_id],
+    (err) => {
+      if (err) {
+        console.error("ATTENDANCE ERROR:", err);
+        return res.status(500).json({ message: err.message });
+      }
+      res.json({ message: "Attendance marked" });
+    }
+  );
+});
 /* ================= SERVER ================= */
 
 const PORT = process.env.PORT || 3000;
