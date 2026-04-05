@@ -11,6 +11,10 @@ const SECRET_KEY = "codeandconquer_secret";
 app.use(express.json());
 app.use(cors({ origin: "*" }));
 
+const path = require("path");
+
+// Serve frontend folder
+app.use(express.static(path.join(__dirname, "frontend")));
 /* ================= DATABASE ================= */
 
 const db = mysql.createConnection(process.env.MYSQLPUBLICURL);
