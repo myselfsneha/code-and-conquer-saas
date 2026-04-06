@@ -6,8 +6,16 @@ function saveStudents(){
     localStorage.setItem("students", JSON.stringify(students));
 }
 
-function loadCourses(){
-    let courses = JSON.parse(localStorage.getItem("courses")) || [];
+async function loadCourses() {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("http://localhost:3000/courses", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const courses = await res.json();
 
     let courseDropdown = document.getElementById("course");
     let filterDropdown = document.getElementById("filterCourse");

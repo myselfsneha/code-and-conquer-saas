@@ -17,7 +17,7 @@
 <div class="sidebar">
 <h2>🎓 Code & Conquer</h2>
 <a href="dashboard.html">📊 Dashboard</a>
-<a href="student.html" class="active">👨‍🎓 Students</a>
+<a href="students.html" class="active">👨‍🎓 Students</a>
 <a href="courses.html">📚 Courses</a>
 
 <label class="switch mt-3">
@@ -34,12 +34,14 @@
 
 <div class="card-custom">
 
-<h3>Students 👨‍🎓</h3>
+<h3>Student 👨‍🎓</h3>
 
 <!-- 🔍 SEARCH + FILTER -->
 <input type="text" id="search" class="form-control mb-2" placeholder="Search by name">
 
-<select id="filterCourse" class="form-control mb-2"></select>
+<select id="filterCourse" class="form-control mb-2">
+    <option value="">All Courses</option>
+</select>
 
 <select id="filterYear" class="form-control mb-2">
 <option value="">All Years</option>
