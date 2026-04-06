@@ -17,10 +17,11 @@ async function loadCourses() {
 
     const courses = await res.json();
 
-    let courseDropdown = document.getElementById("course");
-    let filterDropdown = document.getElementById("filterCourse");
+    let courseDropdown = document.getElementById("course");          // ➕ add student
+    let filterDropdown = document.getElementById("filterCourse");    // 🔍 filter
 
-    courseDropdown.innerHTML = "";
+    // reset dropdowns
+    courseDropdown.innerHTML = `<option value="">Select Course</option>`;
     filterDropdown.innerHTML = `<option value="">All Courses</option>`;
 
     courses.forEach(c => {
@@ -28,7 +29,6 @@ async function loadCourses() {
         filterDropdown.innerHTML += `<option value="${c.name}">${c.name}</option>`;
     });
 }
-
 function renderStudents(){
     showLoader();
 
@@ -71,27 +71,39 @@ function renderStudents(){
     hideLoader();
 }
 
-function addStudent(){
-    let name = document.getElementById("name").value;
-    let email = document.getElementById("email").value;
-    let course = document.getElementById("course").value;
-    let year = document.getElementById("year").value;
-    let fees = document.getElementById("fees").value;
-    let attendance = document.getElementById("attendance").value;
+async function addStudent() {
+    const token = localStorage.getItem("token");
 
-    if(!name || !email || !course || !year){
-        showToast("Fill required fields ❌", "error");
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const course = document.getElementById("course").value;   // 👈 HERE
+    const year = document.getElementById("year").value;
+
+    if (!name || !email || !course || !year) {
+        alert("All fields required");
         return;
     }
 
-    students.push({ name, email, course, year, fees, attendance });
+    const res = await fetch("http://localhost:3000/students", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            name,
+            email,
+            course,   // 👈 sent to backend
+            year
+        })
+    });
 
-    saveStudents();
+    const data = await res.json();
 
-    showToast("Student Added ✅");
+    alert(data.message);
 
-    closeModal();
-    renderStudents();
+    closeModal();        // close popup
+    renderStudents();    // refresh table
 }
 
 function deleteStudent(index){
