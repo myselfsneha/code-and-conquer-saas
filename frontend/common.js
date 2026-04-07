@@ -27,13 +27,43 @@ function showToast(message, type = "success") {
   }, 2500);
 }
 
-function parseJwt(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch (error) {
-    return null;
-  }
+
+function showToast(msg){
+    const t = document.getElementById("toast");
+    t.innerText = msg;
+    t.style.display = "block";
+
+    setTimeout(()=>{
+        t.style.display = "none";
+    },3000);
+}
+
+function showLoader(){
+    document.getElementById("loader").style.display = "flex";
+}
+
+function hideLoader(){
+    document.getElementById("loader").style.display = "none";
+} 
+
+
+// ===== AUTH CHECK =====
+function checkAuth(){
+    let token = localStorage.getItem("token");
+    let loginTime = localStorage.getItem("loginTime");
+
+    if(!token || !loginTime){
+        window.location.href = "login.html";
+        return;
+    }
+
+    let currentTime = new Date().getTime();
+
+    if(currentTime - loginTime > TOKEN_EXPIRY){
+        localStorage.clear();
+        alert("Session expired. Please login again.");
+        window.location.href = "login.html";
+    }
 }
 
 function saveLogin(token, user) {

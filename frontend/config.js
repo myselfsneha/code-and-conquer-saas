@@ -1,4 +1,8 @@
-// Central frontend configuration.
-// Production backend (Render): https://code-and-conquer-saas.onrender.com
-const API = window.API_BASE_URL || "https://code-and-conquer-saas.onrender.com";
-const TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour fallback
+const API = "https://code-and-conquer-saas.onrender.com";
+// ===== API CONFIG =====
+
+// For now using local system (later backend)
+//const API = "http://localhost:3000";
+
+// Token expiry time (1 hour)
+const TOKEN_EXPIRY = 60 * 60 * 1000;

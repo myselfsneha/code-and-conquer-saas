@@ -1,43 +1,67 @@
-async function registerUser() {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-  const tenantId = document.getElementById("tenant").value;
+async function registerUser(){
 
-  if (!name || !email || !password || !tenantId) {
-    showToast("Fill all fields ❌", "error");
-    return;
-  }
+    const role = document.getElementById("role").value;
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const tenant_id = document.getElementById("tenant").value;
 
-  try {
-    const res = await fetch(`${API}/register-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        tenant_id: Number(tenantId),
-        role: "admin",
-      }),
-    });
+    const btn = document.querySelector("button");
 
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      showToast(data.message || "Registration failed ❌", "error");
-      return;
+    if(!role){
+        showToast("Select role ❌");
+        return;
     }
 
-    showToast("Account created! ✅");
+    if(!name || !email || !password){
+        showToast("Fill all fields ❌");
+        return;
+    }
 
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 900);
-  } catch (err) {
-    console.error(err);
-    showToast("Server error ❌", "error");
-  }
+    try{
+        showLoader();
+
+        btn.innerText = "Registering...";
+        btn.disabled = true;
+
+        const res = await fetch(`${API}/register`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ role, name, email, password })
+        });
+
+        const data = await res.json();
+        console.log("REGISTER RESPONSE:", data);
+
+        if(!res.ok){
+            showToast(data.message || "Registration failed ❌");
+            btn.innerText = "Register";
+            btn.disabled = false;
+            hideLoader();
+            return;
+        }
+
+        showToast("Registration successful ✅");
+
+        setTimeout(()=>{
+            window.location.href = "login.html";
+        }, 1200);
+
+    }catch(err){
+        console.error(err);
+        showToast("Server error ❌");
+        btn.innerText = "Register";
+        btn.disabled = false;
+    }
+
+    hideLoader();
 }
+
+/* ENTER KEY SUPPORT */
+document.addEventListener("keypress", function(e){
+    if(e.key === "Enter"){
+        registerUser();
+    }
+});
