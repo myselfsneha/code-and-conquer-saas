@@ -1,88 +1,77 @@
-// ===== AUTH =====
 checkAuth();
 
-// ===== LOAD DASHBOARD =====
-async function loadDashboard(){
-    showLoader();
+async function loadDashboard() {
+  showLoader();
 
-    try{
-        let res = await fetch(`${API}/students`);
-        let data = await res.json();
+  try {
+    const response = await fetch(`${API}/students?page=1&limit=500`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+      },
+    });
 
-        let totalStudents = data.length;
-        let totalFees = 0;
-        let pendingFees = 0;
+    const payload = await response.json();
 
-        let courseCount = {
-            BCA: 0,
-            BBA: 0,
-            MCA: 0
-        };
-
-        data.forEach(s => {
-            totalFees += s.feesPaid || 0;
-
-            if((s.feesPaid || 0) < 50000){
-                pendingFees += (50000 - (s.feesPaid || 0));
-            }
-
-            if(courseCount[s.course] !== undefined){
-                courseCount[s.course]++;
-            }
-        });
-
-        // ===== UPDATE CARDS =====
-        document.getElementById("totalStudents").innerText = totalStudents;
-        document.getElementById("totalFees").innerText = "₹" + totalFees;
-        document.getElementById("pendingFees").innerText = "₹" + pendingFees;
-        document.getElementById("totalCourses").innerText = Object.keys(courseCount).length;
-
-        // ===== RECENT STUDENTS =====
-        let table = document.getElementById("recentStudents");
-        table.innerHTML = "";
-
-        data.slice(-5).reverse().forEach(s => {
-            table.innerHTML += `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.course}</td>
-            </tr>`;
-        });
-
-        // ===== PIE CHART =====
-        new Chart(document.getElementById("pieChart"), {
-            type: "pie",
-            data: {
-                labels: ["Paid", "Pending"],
-                datasets: [{
-                    data: [totalFees, pendingFees]
-                }]
-            }
-        });
-
-        // ===== BAR CHART =====
-        new Chart(document.getElementById("barChart"), {
-            type: "bar",
-            data: {
-                labels: Object.keys(courseCount),
-                datasets: [{
-                    label: "Students",
-                    data: Object.values(courseCount)
-                }]
-            }
-        });
-
-    }catch{
-        showToast("Dashboard load failed ❌");
+    if (!response.ok || !payload.success) {
+      showToast(payload.message || "Dashboard load failed", "error");
+      return;
     }
 
+    const students = payload.data || [];
+
+    const totalStudents = students.length;
+    const totalFees = students.reduce((acc, s) => acc + Number(s.total_paid || 0), 0);
+    const totalCourses = new Set(students.map((s) => s.course).filter(Boolean)).size;
+
+    document.getElementById("totalStudents").innerText = totalStudents;
+    document.getElementById("totalFees").innerText = `₹${totalFees}`;
+    document.getElementById("pendingFees").innerText = "₹0";
+    document.getElementById("totalCourses").innerText = totalCourses;
+
+    const table = document.getElementById("recentStudents");
+    table.innerHTML = "";
+
+    students.slice(0, 5).forEach((student) => {
+      table.innerHTML += `
+        <tr>
+          <td>${student.name}</td>
+          <td>${student.course}</td>
+        </tr>`;
+    });
+
+    const paidCount = students.filter((s) => Number(s.total_paid || 0) > 0).length;
+    const unpaidCount = Math.max(totalStudents - paidCount, 0);
+
+    new Chart(document.getElementById("pieChart"), {
+      type: "pie",
+      data: {
+        labels: ["Paid", "Unpaid"],
+        datasets: [{ data: [paidCount, unpaidCount] }],
+      },
+    });
+
+    const courseMap = {};
+    students.forEach((s) => {
+      courseMap[s.course] = (courseMap[s.course] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(courseMap),
+        datasets: [{ label: "Students", data: Object.values(courseMap) }],
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    showToast("Dashboard load failed", "error");
+  } finally {
     hideLoader();
+  }
 }
 
-// ===== DARK MODE =====
-function toggleDark(){
-    document.body.classList.toggle("dark");
+function toggleDark() {
+  document.body.classList.toggle("dark");
 }
 
-// ===== START =====
 loadDashboard();
