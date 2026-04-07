@@ -114,7 +114,6 @@ body {
 
 <div class="register-glass">
 
-<<<<<<< HEAD
     <h2>✨ Create Account</h2>
 
     <!-- ROLE -->
@@ -132,13 +131,6 @@ body {
         <input type="text" id="name" placeholder=" " />
         <label>Name</label>
     </div>
-=======
-<h3>Create Admin Account 🚀</h3>
-
-<input id="name" class="form-control mb-2" placeholder="Full Name">
-<input id="email" class="form-control mb-2" placeholder="Email">
-<input id="tenant" class="form-control mb-2" placeholder="Tenant ID (e.g. 1001)">
->>>>>>> 39b4648d63dc71698f668920c89b2e5f30a90ab4
 
     <!-- EMAIL -->
     <div class="input-group">
@@ -152,7 +144,6 @@ body {
         <label>Password</label>
     </div>
 
-<<<<<<< HEAD
     <button onclick="registerUser()">Register</button>
 
     <a href="login.html" style="color:white; display:block; margin-top:10px;">
@@ -170,65 +161,6 @@ body {
 <script src="config.js"></script>
 <script src="common.js"></script>
 <script src="register.js"></script>
-=======
-<button class="btn btn-primary w-100" onclick="validateAndRegister()">Register</button>
-
-<p class="mt-3 mb-0 text-center"><a href="login.html">Back to Login</a></p>
-
-</div>
-
-<script src="config.js"></script>
-<script src="common.js"></script>
-<script>
-async function validateAndRegister() {
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const tenant = document.getElementById("tenant").value.trim();
-  const password = document.getElementById("password").value;
-  const confirm = document.getElementById("confirmPassword").value;
-
-  if (!name || !email || !password || !confirm || !tenant) {
-    document.getElementById("errorMsg").innerText = "All fields required ❌";
-    return;
-  }
-
-  if (password !== confirm) {
-    document.getElementById("errorMsg").innerText = "Passwords do not match!";
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API}/register-admin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        tenant_id: Number(tenant),
-        role: "admin"
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      document.getElementById("errorMsg").innerText = data.message || "Registration failed ❌";
-      return;
-    }
-
-    showToast("Registered Successfully ✅");
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 700);
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("errorMsg").innerText = "Server error ❌";
-  }
-}
-</script>
->>>>>>> 39b4648d63dc71698f668920c89b2e5f30a90ab4
 
 </body>
 </html>
