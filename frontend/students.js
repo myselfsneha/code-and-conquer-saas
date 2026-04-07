@@ -1,117 +1,156 @@
 checkAuth();
 
-let students = JSON.parse(localStorage.getItem("students")) || [];
-
-function saveStudents(){
-    localStorage.setItem("students", JSON.stringify(students));
-}
+let students = [];
+let page = 1;
+const limit = 10;
+let studentRefreshTimer = null;
 
 async function loadCourses() {
-    const token = localStorage.getItem("token");
-
-    const res = await fetch("http://localhost:3000/courses", {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
+  try {
+    const response = await fetch(`${API}/courses`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     });
+    const payload = await response.json();
 
-    const courses = await res.json();
+    if (!response.ok || !payload.success) {
+      showToast(payload.message || "Failed to load courses", "error");
+      return;
+    }
 
-    let courseDropdown = document.getElementById("course");          // ➕ add student
-    let filterDropdown = document.getElementById("filterCourse");    // 🔍 filter
+    const courseDropdown = document.getElementById("course");
+    const filterDropdown = document.getElementById("filterCourse");
 
-    // reset dropdowns
     courseDropdown.innerHTML = `<option value="">Select Course</option>`;
     filterDropdown.innerHTML = `<option value="">All Courses</option>`;
 
-    courses.forEach(c => {
-        courseDropdown.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        filterDropdown.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+    payload.data.forEach((course) => {
+      courseDropdown.innerHTML += `<option value="${course.name}">${course.name}</option>`;
+      filterDropdown.innerHTML += `<option value="${course.name}">${course.name}</option>`;
     });
+  } catch (error) {
+    console.error(error);
+    showToast("Failed to load courses", "error");
+  }
 }
-function renderStudents(){
-    showLoader();
 
-    let table = document.getElementById("tableBody");
+async function fetchStudents() {
+  showLoader();
 
-    let search = document.getElementById("search").value.toLowerCase();
-    let courseFilter = document.getElementById("filterCourse").value;
-    let yearFilter = document.getElementById("filterYear").value;
+  try {
+    const search = document.getElementById("search").value.trim();
+    const course = document.getElementById("filterCourse").value;
+    const year = document.getElementById("filterYear").value;
 
-    table.innerHTML = "";
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
 
-    let filtered = students.filter(s => 
-        s.name.toLowerCase().includes(search) &&
-        (courseFilter === "" || s.course === courseFilter) &&
-        (yearFilter === "" || s.year === yearFilter)
-    );
+    if (search) params.append("search", search);
+    if (course) params.append("course", course);
+    if (year) params.append("year", year);
 
-    if(filtered.length === 0){
-        table.innerHTML = `<tr><td colspan="8">No students found 😕</td></tr>`;
-        hideLoader();
-        return;
+    const response = await fetch(`${API}/students?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    });
+
+    const payload = await response.json();
+
+    if (!response.ok || !payload.success) {
+      showToast(payload.message || "Failed to load students", "error");
+      return;
     }
 
-    filtered.forEach((s, index) => {
-        table.innerHTML += `
-        <tr>
-            <td>${index+1}</td>
-            <td>${s.name}</td>
-            <td>${s.email}</td>
-            <td>${s.course}</td>
-            <td>${s.year}</td>
-            <td>₹${s.fees}</td>
-            <td>${s.attendance}%</td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${index})">Delete</button>
-            </td>
-        </tr>`;
-    });
-
+    students = payload.data || [];
+    renderStudents();
+  } catch (error) {
+    console.error(error);
+    showToast("Failed to load students", "error");
+  } finally {
     hideLoader();
+  }
+}
+
+function renderStudents() {
+  const table = document.getElementById("tableBody");
+  table.innerHTML = "";
+
+  if (students.length === 0) {
+    table.innerHTML = `<tr><td colspan="8">No students found 😕</td></tr>`;
+    return;
+  }
+
+  students.forEach((student, index) => {
+    table.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${student.name}</td>
+        <td>${student.email}</td>
+        <td>${student.course}</td>
+        <td>${student.year}</td>
+        <td>₹${Number(student.total_paid || 0).toLocaleString("en-IN")}</td>
+        <td>${student.attendance_percentage || 0}%</td>
+        <td>-</td>
+      </tr>`;
+  });
 }
 
 async function addStudent() {
-    const token = localStorage.getItem("token");
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const course = document.getElementById("course").value;
+  const year = document.getElementById("year").value;
+  const fees = document.getElementById("fees").value;
 
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const course = document.getElementById("course").value;   // 👈 HERE
-    const year = document.getElementById("year").value;
+  if (!name || !email || !course || !year) {
+    showToast("All fields required", "error");
+    return;
+  }
 
-    if (!name || !email || !course || !year) {
-        alert("All fields required");
-        return;
-    }
-
-    const res = await fetch("http://localhost:3000/students", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-            name,
-            email,
-            course,   // 👈 sent to backend
-            year
-        })
+  try {
+    const studentResponse = await fetch(`${API}/students`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ name, email, course, year }),
     });
 
-    const data = await res.json();
+    const studentPayload = await studentResponse.json();
 
-    alert(data.message);
+    if (!studentResponse.ok || !studentPayload.success) {
+      showToast(studentPayload.message || "Unable to add student", "error");
+      return;
+    }
 
-    closeModal();        // close popup
-    renderStudents();    // refresh table
+    const studentId = studentPayload.data?.student_id;
+
+    if (studentId && fees && Number(fees) > 0) {
+      await fetch(`${API}/fees`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ student_id: studentId, amount_paid: Number(fees) }),
+      });
+    }
+
+    showToast("Student added ✅");
+    closeModal();
+    await fetchStudents();
+  } catch (error) {
+    console.error(error);
+    showToast("Unable to add student", "error");
+  }
 }
 
-function deleteStudent(index){
-    students.splice(index,1);
-    saveStudents();
-    showToast("Deleted ❌", "error");
-    renderStudents();
+function startStudentRealtime() {
+  if (studentRefreshTimer) clearInterval(studentRefreshTimer);
+  studentRefreshTimer = setInterval(() => {
+    if (document.visibilityState === "visible") {
+      fetchStudents();
+    }
+  }, 30000);
 }
+
+window.renderStudents = fetchStudents;
 
 loadCourses();
-renderStudents();
+fetchStudents();
+startStudentRealtime();
