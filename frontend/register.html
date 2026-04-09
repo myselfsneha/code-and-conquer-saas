@@ -19,90 +19,38 @@ width:420px;
 padding:25px;
 border-radius:15px;
 }
-
-.error {
-color:red;
-font-size:14px;
-}
 </style>
 </head>
 
 <body>
-
 <div class="card shadow">
-
-<h3>Create Account 🚀</h3>
-
-<select id="role" class="form-select mb-2">
-<option value="">Register As</option>
-<option value="student">Student</option>
-<option value="college">College</option>
-</select>
+<h3>Create Admin Account 🚀</h3>
 
 <input id="name" class="form-control mb-2" placeholder="Full Name">
 <input id="email" class="form-control mb-2" placeholder="Email">
-
+<input id="tenant" class="form-control mb-2" placeholder="Tenant ID (e.g. 1001)">
 <input id="password" type="password" class="form-control mb-2" placeholder="Password">
 <input id="confirmPassword" type="password" class="form-control mb-2" placeholder="Confirm Password">
 
-<div id="errorMsg" class="error mb-2"></div>
-
-<button class="btn btn-primary w-100" onclick="validateForm()">Register</button>
-
+<button class="btn btn-primary w-100" onclick="validateAndRegister()">Register</button>
+<p class="mt-3 text-center"><a href="login.html">Back to Login</a></p>
 </div>
 
+<script src="config.js"></script>
+<script src="common.js"></script>
+<script src="register.js"></script>
 <script>
-const API = "https://code-and-conquer-saas-11g6.onrender.com";
-
-async function validateAndRegister() {
-
-  const role = document.getElementById("role").value;
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
+function validateAndRegister() {
   const password = document.getElementById("password").value;
   const confirm = document.getElementById("confirmPassword").value;
 
-  if (!role || !name || !email || !password || !confirm) {
-    document.getElementById("errorMsg").innerText = "All fields required ❌";
-    return;
-  }
-
   if (password !== confirm) {
-    document.getElementById("errorMsg").innerText = "Passwords do not match!";
+    showToast("Passwords do not match", "error");
     return;
   }
 
-  try {
-    const res = await fetch(`${API}/register-admin`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-        tenant_id: 1   // temporary
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      document.getElementById("errorMsg").innerText = data.message || "Registration failed ❌";
-      return;
-    }
-
-    alert("Registered Successfully ✅");
-
-    window.location.href = "login.html";
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("errorMsg").innerText = "Server error ❌";
-  }
+  registerUser();
 }
 </script>
-
 </body>
 </html>
