@@ -4,6 +4,19 @@ let students = [];
 let page = 1;
 const limit = 10;
 
+// ===== LOAD TENANTS (DROPDOWN) =====
+function loadTenants(){
+    let tenants = JSON.parse(localStorage.getItem("tenants")) || [];
+    let dropdown = document.getElementById("tenantSelect");
+
+    dropdown.innerHTML = "<option value=''>Select Tenant</option>";
+
+    tenants.forEach(t => {
+        dropdown.innerHTML += `<option value="${t.tenant_id}">${t.name}</option>`;
+    });
+}
+
+// ===== LOAD COURSES =====
 async function loadCourses() {
   try {
     const response = await fetch(`${API}/courses`, {
@@ -94,6 +107,7 @@ function renderStudents() {
   });
 }
 
+// ===== ADD STUDENT =====
 async function addStudent() {
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -141,5 +155,10 @@ async function addStudent() {
 
 window.renderStudents = fetchStudents;
 
+// ===== EVENTS =====
+document.getElementById("search").addEventListener("input", renderStudents);
+
+// ===== INIT =====
+loadTenants();   // 🔥 IMPORTANT
 loadCourses();
 fetchStudents();
