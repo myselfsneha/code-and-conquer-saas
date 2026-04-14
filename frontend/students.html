@@ -82,24 +82,24 @@
 <div class="modal" id="studentModal">
   <div class="modal-content">
 
-    <h5>Add Student</h5>
+   <h5>Add Student</h5>
 
-    <input id="name" class="form-control mb-2" placeholder="Name">
-    <input id="email" class="form-control mb-2" placeholder="Email">
+   <input id="name" class="form-control mb-2" placeholder="Name">
+   <input id="email" class="form-control mb-2" placeholder="Email">
 
-    <!-- ✅ CLEANED COURSES -->
-    <select id="course" class="form-control mb-2">
-    </select>
+  <select id="course" class="form-control mb-2"></select>
 
-    <select id="year" class="form-control mb-2">
-      <option value="">Select Year</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-    </select>
+  <select id="year" class="form-control mb-2">
+  <option value="">Select Year</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  </select>
 
-    <!-- ❌ REMOVED TENANT SELECT (not needed) -->
-    <!-- ❌ REMOVED FEES + ATTENDANCE (backend handles separately) -->
+  <select id="tenantSelect" class="form-control mb-2"></select>
+
+  <input id="fees" class="form-control mb-2" placeholder="Fees Paid">
+  <input id="attendance" class="form-control mb-2" placeholder="Attendance %">
 
     <button class="btn btn-success w-100 mb-2" onclick="addStudent()">Add</button>
     <button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
