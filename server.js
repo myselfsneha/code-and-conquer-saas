@@ -1,6 +1,12 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+app.use(cors({
+  origin: ["http://localhost:3000"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 const mysql = require("mysql2");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -9,7 +15,6 @@ require("dotenv").config();
 const SECRET_KEY = "codeandconquer_secret";
 
 app.use(express.json());
-app.use(cors({ origin: "*" }));
 
 const path = require("path");
 

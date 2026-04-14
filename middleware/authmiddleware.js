@@ -4,7 +4,6 @@ const SECRET_KEY = "codeandconquer_secret";
 
 function authMiddleware(req, res, next) {
     const authHeader = req.header("Authorization");
-
     if (!authHeader) {
         return res.status(401).json({
             message: "Access Denied. No token provided."

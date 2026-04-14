@@ -27,9 +27,8 @@ function renderTenants(){
 
     filtered.forEach((t, index) => {
 
-        // fake mapping for now (later backend)
-        let studentCount = students.length;
-        let courseCount = courses.length;
+        let studentCount = students.filter(s => s.tenant_id === t.tenant_id).length;
+        let courseCount = courses.filter(c => c.tenant_id === t.tenant_id).length;
 
         table.innerHTML += `
         <tr>
@@ -63,10 +62,11 @@ function addTenant(){
     }
 
     tenants.push({
-        name,
-        email,
-        status
-    });
+    tenant_id: Date.now(), // unique id
+    name,
+    email,
+    status
+});
 
     saveTenants();
     closeModal();
