@@ -1,3 +1,5 @@
+<<<<<<< HEAD
+=======
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -348,3 +350,4 @@ app.get("/", (req, res) => {
 app.get("/app-status", (req, res) => {
   res.send("Server running properly ✅");
 });
+>>>>>>> 98dc5e23c45d1a957fd5659e65352baa8c58a429

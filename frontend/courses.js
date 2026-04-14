@@ -1,101 +1,81 @@
 checkAuth();
 
+let allCourses = [];
+
 async function loadCourses() {
-    showLoader();
+  showLoader();
 
-    try {
-        const res = await fetch(`${API}/courses`, {
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
-        });
+  try {
+    const data = await apiRequest("/courses");
+    allCourses = data;
 
-        const data = await res.json();
-        renderCourses(data);
-    } catch (err) {
-        console.error(err);
-        showToast("Error loading courses ❌", "error");
-    }
+    renderCourses();
 
-    hideLoader();
+  } catch (err) {
+    showToast(err.message, "error");
+  }
+
+  hideLoader();
 }
 
-function renderCourses(courses) {
-    let table = document.getElementById("courseTable");
-    let search = document.getElementById("searchCourse").value.toLowerCase();
+function renderCourses() {
+  const table = document.getElementById("courseTable");
+  const search = document.getElementById("searchCourse").value.toLowerCase();
 
-    table.innerHTML = "";
+  table.innerHTML = "";
 
-    let filtered = courses.filter(c =>
-        c.name.toLowerCase().includes(search)
-    );
+  const filtered = allCourses.filter(c =>
+    c.name.toLowerCase().includes(search)
+  );
 
-    if (filtered.length === 0) {
-        table.innerHTML = `<tr><td colspan="6">No courses found 😕</td></tr>`;
-        return;
-    }
+  if (!filtered.length) {
+    table.innerHTML = `<tr><td colspan="6">No courses 😕</td></tr>`;
+    return;
+  }
 
-    filtered.forEach((c, index) => {
-        table.innerHTML += `
-        <tr>
-            <td>${index + 1}</td>
-            <td>${c.name}</td>
-            <td>${c.duration}</td>
-            <td>₹${c.fees}</td>
-            <td>0</td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
-            </td>
-        </tr>`;
-    });
+  filtered.forEach((c, i) => {
+    table.innerHTML += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${c.name}</td>
+      <td>${c.duration}</td>
+      <td>₹${c.fees}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
+      </td>
+    </tr>`;
+  });
 }
 
 async function addCourse() {
-    let name = document.getElementById("courseName").value;
-    let duration = document.getElementById("courseDuration").value;
-    let fees = document.getElementById("courseFees").value;
+  const name = document.getElementById("courseName").value;
+  const duration = document.getElementById("courseDuration").value;
+  const fees = document.getElementById("courseFees").value;
 
-    if (!name || !duration || !fees) {
-        showToast("Fill all fields ❌", "error");
-        return;
-    }
+  try {
+    await apiRequest("/courses", "POST", { name, duration, fees });
 
-    try {
-        await fetch(`${API}/courses`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            },
-            body: JSON.stringify({ name, duration, fees })
-        });
+    showToast("Course added ✅");
+    closeModal();
+    loadCourses();
 
-        showToast("Course added ✅");
-        closeModal();
-        loadCourses();
-    } catch (err) {
-        console.error(err);
-        showToast("Error adding course ❌", "error");
-    }
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 }
 
 async function deleteCourse(id) {
-    try {
-        await fetch(`${API}/courses/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": "Bearer " + localStorage.getItem("token")
-            }
-        });
+  try {
+    await apiRequest(`/courses/${id}`, "DELETE");
 
-        showToast("Course deleted 🗑️");
-        loadCourses();
-    } catch (err) {
-        console.error(err);
-        showToast("Error deleting course ❌", "error");
-    }
+    showToast("Deleted 🗑️");
+    loadCourses();
+
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 }
 
-document.getElementById("searchCourse").addEventListener("input", loadCourses);
+document.getElementById("searchCourse").addEventListener("input", renderCourses);
 
 loadCourses();

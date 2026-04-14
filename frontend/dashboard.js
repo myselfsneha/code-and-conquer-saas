@@ -1,88 +1,112 @@
-// ===== AUTH =====
 checkAuth();
 
-// ===== LOAD DASHBOARD =====
+let students = [];
+let courses = [];
+
+// ===== LOAD DASHBOARD DATA =====
 async function loadDashboard(){
     showLoader();
 
     try{
-        let res = await fetch(`${API}/students`);
-        let data = await res.json();
-
-        let totalStudents = data.length;
-        let totalFees = 0;
-        let pendingFees = 0;
-
-        let courseCount = {
-            BCA: 0,
-            BBA: 0,
-            MCA: 0
-        };
-
-        data.forEach(s => {
-            totalFees += s.feesPaid || 0;
-
-            if((s.feesPaid || 0) < 50000){
-                pendingFees += (50000 - (s.feesPaid || 0));
-            }
-
-            if(courseCount[s.course] !== undefined){
-                courseCount[s.course]++;
-            }
+        // STUDENTS
+        const res1 = await fetch(`${API}/students?page=1&limit=100`, {
+            headers: getAuthHeaders()
         });
+        const data1 = await res1.json();
 
-        // ===== UPDATE CARDS =====
-        document.getElementById("totalStudents").innerText = totalStudents;
-        document.getElementById("totalFees").innerText = "₹" + totalFees;
-        document.getElementById("pendingFees").innerText = "₹" + pendingFees;
-        document.getElementById("totalCourses").innerText = Object.keys(courseCount).length;
+        students = data1.students || [];
 
-        // ===== RECENT STUDENTS =====
-        let table = document.getElementById("recentStudents");
-        table.innerHTML = "";
-
-        data.slice(-5).reverse().forEach(s => {
-            table.innerHTML += `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.course}</td>
-            </tr>`;
+        // COURSES
+        const res2 = await fetch(`${API}/courses`, {
+            headers: getAuthHeaders()
         });
+        const data2 = await res2.json();
 
-        // ===== PIE CHART =====
-        new Chart(document.getElementById("pieChart"), {
-            type: "pie",
-            data: {
-                labels: ["Paid", "Pending"],
-                datasets: [{
-                    data: [totalFees, pendingFees]
-                }]
-            }
-        });
+        courses = data2 || [];
 
-        // ===== BAR CHART =====
-        new Chart(document.getElementById("barChart"), {
-            type: "bar",
-            data: {
-                labels: Object.keys(courseCount),
-                datasets: [{
-                    label: "Students",
-                    data: Object.values(courseCount)
-                }]
-            }
-        });
+        updateStats();
+        renderCharts();
+        renderTable();
 
-    }catch{
-        showToast("Dashboard load failed ❌");
+    }catch(err){
+        console.error(err);
+        showToast("Dashboard error ❌","error");
     }
 
     hideLoader();
 }
 
-// ===== DARK MODE =====
-function toggleDark(){
-    document.body.classList.toggle("dark");
+// ===== STATS =====
+function updateStats(){
+    document.getElementById("totalStudents").innerText = students.length;
+
+    const totalFees = students.reduce((sum,s)=> sum + (s.total_paid || 0),0);
+    document.getElementById("totalFees").innerText = "₹" + totalFees;
+
+    const avgAttendance = students.length
+        ? (students.reduce((sum,s)=> sum + (s.attendance_percentage || 0),0) / students.length).toFixed(1)
+        : 0;
+
+    document.getElementById("avgAttendance").innerText = avgAttendance + "%";
+
+    document.getElementById("totalCourses").innerText = courses.length;
 }
 
-// ===== START =====
+// ===== CHARTS =====
+function renderCharts(){
+
+    // PIE (COURSES)
+    let courseMap = {};
+    students.forEach(s=>{
+        courseMap[s.course] = (courseMap[s.course] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels: Object.keys(courseMap),
+            datasets: [{
+                data: Object.values(courseMap)
+            }]
+        }
+    });
+
+    // BAR (YEAR)
+    let yearMap = {};
+    students.forEach(s=>{
+        yearMap[s.year] = (yearMap[s.year] || 0) + 1;
+    });
+
+    new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels: Object.keys(yearMap),
+            datasets: [{
+                label: "Students",
+                data: Object.values(yearMap)
+            }]
+        }
+    });
+}
+
+// ===== TABLE =====
+function renderTable(){
+    const table = document.getElementById("recentStudents");
+    table.innerHTML = "";
+
+    const latest = students.slice(0,5);
+
+    latest.forEach(s=>{
+        table.innerHTML += `
+        <tr>
+            <td>${s.name}</td>
+            <td>${s.course}</td>
+            <td>${s.year}</td>
+            <td>₹${s.total_paid || 0}</td>
+            <td>${s.attendance_percentage || 0}%</td>
+        </tr>`;
+    });
+}
+
+// INIT
 loadDashboard();

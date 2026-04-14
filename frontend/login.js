@@ -1,56 +1,38 @@
 async function loginUser() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const role = document.getElementById("role").value;
-    const btn = document.querySelector("button");
+  const role = document.getElementById("role").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const btn = document.querySelector("button");
 
-    if (!email || !password) {
-        showToast("Enter email & password ❌", "error");
-        return;
-    }
+  if (!role || !email || !password) {
+    showToast("Fill all fields ❌", "error");
+    return;
+  }
 
-    try {
-        btn.innerText = "Logging in...";
-        btn.disabled = true;
+  try {
+    showLoader();
+    btn.innerText = "Logging in...";
+    btn.disabled = true;
 
-        const res = await fetch(`${API}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password, role })
-        });
+    const data = await apiRequest("/login", "POST", {
+      role,
+      email,
+      password,
+    });
 
-        const data = await res.json();
+    saveLogin(data.token);
 
-        if (!res.ok) {
-            showToast(data.message || "Login failed ❌", "error");
-            btn.innerText = "Login";
-            btn.disabled = false;
-            return;
-        }
+    showToast("Login successful ✅");
 
-        // ✅ Save token
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("loginTime", new Date().getTime());
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1000);
 
-        showToast("Login successful ✅");
+  } catch (err) {
+    showToast(err.message, "error");
+    btn.innerText = "Login";
+    btn.disabled = false;
+  }
 
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 1000);
-
-    } catch (err) {
-        console.error(err);
-        showToast("Server error ❌", "error");
-        btn.innerText = "Login";
-        btn.disabled = false;
-    }
+  hideLoader();
 }
-
-// ENTER KEY LOGIN
-document.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        loginUser();
-    }
-});

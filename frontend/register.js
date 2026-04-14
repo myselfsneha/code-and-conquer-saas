@@ -1,45 +1,32 @@
-const API = "https://code-and-conquer-saas-11g6.onrender.com";
-
 async function registerUser() {
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const tenant_id = document.getElementById("tenant").value;
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    if (!name || !email || !password || !tenant_id) {
-        showToast("Fill all fields ❌");
-        return;
-    }
+  if (!name || !email || !password) {
+    showToast("Fill all fields ❌", "error");
+    return;
+  }
 
-    try {
-        const res = await fetch(`${API}/register-admin`, {   // ✅ FIXED ROUTE
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name,
-                email,
-                password,
-                tenant_id
-            })
-        });
+  try {
+    showLoader();
 
-        const data = await res.json();
+    await apiRequest("/register-admin", "POST", {
+      name,
+      email,
+      password,
+      tenant_id: Date.now() // temp id
+    });
 
-        if (!res.ok) {
-            showToast(data.message || "Registration failed ❌");
-            return;
-        }
+    showToast("Registered ✅");
 
-        showToast("Account created! ✅");
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1000);
 
-        setTimeout(() => {
-            window.location.href = "login.html";
-        }, 1000);
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 
-    } catch (err) {
-        console.error(err);
-        showToast("Server error ❌");
-    }
+  hideLoader();
 }
