@@ -113,16 +113,11 @@ body {
 <script src="config.js"></script>
 
 <script>
-// AUTO REDIRECT
-let token = localStorage.getItem("token");
-let loginTime = localStorage.getItem("loginTime");
+// ✅ SAFE AUTO REDIRECT (NO TOKEN_EXPIRY BUG)
+const token = localStorage.getItem("token");
 
-if(token && loginTime){
-    let now = new Date().getTime();
-
-    if(now - loginTime < TOKEN_EXPIRY){
-        window.location.href = "dashboard.html";
-    }
+if (token) {
+    window.location.href = "dashboard.html";
 }
 </script>
 

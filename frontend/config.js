@@ -1,8 +1,31 @@
-const API = "https://code-and-conquer-saas.onrender.com";
-// ===== API CONFIG =====
+const API = "https://code-and-conquer-saas-11g6.onrender.com";
 
-// For now using local system (later backend)
-//const API = "http://localhost:3000";
+const TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
 
-// Token expiry time (1 hour)
-const TOKEN_EXPIRY = 60 * 60 * 1000;
+async function apiRequest(endpoint, method = "GET", body = null) {
+  const token = localStorage.getItem("token");
+
+  const options = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  };
+
+  if (token) {
+    options.headers["Authorization"] = "Bearer " + token;
+  }
+
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const res = await fetch(API + endpoint, options);
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Error");
+  }
+
+  return data;
+}

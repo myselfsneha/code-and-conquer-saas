@@ -6,25 +6,16 @@ async function loadCourses() {
   showLoader();
 
   try {
-    const response = await fetch(`${API}/courses`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    const data = await apiRequest("/courses");
+    allCourses = data;
 
-    const payload = await response.json();
-
-    if (!response.ok || !payload.success) {
-      showToast(payload.message || "Error loading courses", "error");
-      return;
-    }
-
-    allCourses = payload.data || [];
     renderCourses();
-  } catch (error) {
-    console.error(error);
-    showToast("Error loading courses", "error");
-  } finally {
-    hideLoader();
+
+  } catch (err) {
+    showToast(err.message, "error");
   }
+
+  hideLoader();
 }
 
 function renderCourses() {
@@ -33,81 +24,55 @@ function renderCourses() {
 
   table.innerHTML = "";
 
-  const filteredCourses = allCourses.filter((course) =>
-    String(course.name || "").toLowerCase().includes(search)
+  const filtered = allCourses.filter(c =>
+    c.name.toLowerCase().includes(search)
   );
 
-  if (filteredCourses.length === 0) {
-    table.innerHTML = `<tr><td colspan="6">No courses found 😕</td></tr>`;
+  if (!filtered.length) {
+    table.innerHTML = `<tr><td colspan="6">No courses 😕</td></tr>`;
     return;
   }
 
-  filteredCourses.forEach((course, index) => {
+  filtered.forEach((c, i) => {
     table.innerHTML += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${course.name}</td>
-        <td>${course.duration}</td>
-        <td>₹${course.fees}</td>
-        <td>${course.student_count || 0}</td>
-        <td>
-          <button class="btn btn-danger btn-sm" onclick="deleteCourse(${course.course_id})">Delete</button>
-        </td>
-      </tr>`;
+    <tr>
+      <td>${i+1}</td>
+      <td>${c.name}</td>
+      <td>${c.duration}</td>
+      <td>₹${c.fees}</td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
+      </td>
+    </tr>`;
   });
 }
 
 async function addCourse() {
-  const name = document.getElementById("courseName").value.trim();
-  const duration = document.getElementById("courseDuration").value.trim();
-  const fees = document.getElementById("courseFees").value.trim();
-
-  if (!name || !duration || !fees) {
-    showToast("Fill all fields", "error");
-    return;
-  }
+  const name = document.getElementById("courseName").value;
+  const duration = document.getElementById("courseDuration").value;
+  const fees = document.getElementById("courseFees").value;
 
   try {
-    const response = await fetch(`${API}/courses`, {
-      method: "POST",
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ name, duration, fees }),
-    });
-
-    const payload = await response.json();
-
-    if (!response.ok || !payload.success) {
-      showToast(payload.message || "Error adding course", "error");
-      return;
-    }
+    await apiRequest("/courses", "POST", { name, duration, fees });
 
     showToast("Course added ✅");
     closeModal();
-    await loadCourses();
-  } catch (error) {
-    console.error(error);
-    showToast("Error adding course", "error");
+    loadCourses();
+
+  } catch (err) {
+    showToast(err.message, "error");
   }
 }
 
 async function deleteCourse(id) {
   try {
-    const response = await fetch(`${API}/courses/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    await apiRequest(`/courses/${id}`, "DELETE");
 
-    const payload = await response.json();
-    if (!response.ok || !payload.success) {
-      showToast(payload.message || "Error deleting course", "error");
-      return;
-    }
+    showToast("Deleted 🗑️");
+    loadCourses();
 
-    showToast("Course deleted 🗑️");
-    await loadCourses();
-  } catch (error) {
-    console.error(error);
-    showToast("Error deleting course", "error");
+  } catch (err) {
+    showToast(err.message, "error");
   }
 }
 

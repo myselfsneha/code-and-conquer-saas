@@ -1,67 +1,38 @@
 async function loginUser() {
+  const role = document.getElementById("role").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const btn = document.querySelector("button");
 
-    const role = document.getElementById("role").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const btn = document.querySelector("button");
+  if (!role || !email || !password) {
+    showToast("Fill all fields ❌", "error");
+    return;
+  }
 
-    if (!role) {
-        showToast("Select role ❌");
-        return;
-    }
+  try {
+    showLoader();
+    btn.innerText = "Logging in...";
+    btn.disabled = true;
 
-    if (!email || !password) {
-        showToast("Enter email & password ❌");
-        return;
-    }
+    const data = await apiRequest("/login", "POST", {
+      role,
+      email,
+      password,
+    });
 
-    try {
-        showLoader();
+    saveLogin(data.token);
 
-        btn.innerText = "Logging in...";
-        btn.disabled = true;
+    showToast("Login successful ✅");
 
-        const res = await fetch(`${API}/login`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ role, email, password })
-        });
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1000);
 
-        const data = await res.json();
-        console.log("LOGIN RESPONSE:", data);
+  } catch (err) {
+    showToast(err.message, "error");
+    btn.innerText = "Login";
+    btn.disabled = false;
+  }
 
-        if (!res.ok || !data.token) {
-            showToast(data.message || "Login failed ❌");
-            btn.innerText = "Login";
-            btn.disabled = false;
-            hideLoader();
-            return;
-        }
-
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("role", role);
-
-        showToast("Login successful ✅");
-
-        setTimeout(() => {
-            window.location.href = "dashboard.html";
-        }, 1200);
-
-    } catch (err) {
-        console.error(err);
-        showToast("Server error ❌");
-        btn.innerText = "Login";
-        btn.disabled = false;
-    }
-
-    hideLoader();
+  hideLoader();
 }
-
-/* ENTER KEY */
-document.addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-        loginUser();
-    }
-});

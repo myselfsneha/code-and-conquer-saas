@@ -27,53 +27,7 @@ function showToast(message, type = "success") {
   }, 2500);
 }
 
-
-function showToast(msg){
-    const t = document.getElementById("toast");
-    t.innerText = msg;
-    t.style.display = "block";
-
-    setTimeout(()=>{
-        t.style.display = "none";
-    },3000);
-}
-
-function showLoader(){
-    document.getElementById("loader").style.display = "flex";
-}
-
-function hideLoader(){
-    document.getElementById("loader").style.display = "none";
-} 
-
-
-// ===== AUTH CHECK =====
-function checkAuth(){
-    let token = localStorage.getItem("token");
-    let loginTime = localStorage.getItem("loginTime");
-
-    if(!token || !loginTime){
-        window.location.href = "login.html";
-        return;
-    }
-
-    let currentTime = new Date().getTime();
-
-    if(currentTime - loginTime > TOKEN_EXPIRY){
-        localStorage.clear();
-        alert("Session expired. Please login again.");
-        window.location.href = "login.html";
-    }
-}
-
-function saveLogin(token, user) {
-  localStorage.setItem("token", token);
-  localStorage.setItem("loginTime", String(Date.now()));
-  if (user) {
-    localStorage.setItem("user", JSON.stringify(user));
-  }
-}
-
+// ===== AUTH =====
 function checkAuth() {
   const token = localStorage.getItem("token");
   const loginTime = Number(localStorage.getItem("loginTime") || 0);
@@ -83,24 +37,20 @@ function checkAuth() {
     return false;
   }
 
-  const payload = parseJwt(token);
-  const nowInSeconds = Math.floor(Date.now() / 1000);
-
-  if (payload?.exp && payload.exp < nowInSeconds) {
+  const now = Date.now();
+  if (now - loginTime > TOKEN_EXPIRY) {
     localStorage.clear();
-    showToast("Session expired. Please login again.", "error");
-    setTimeout(() => (window.location.href = "login.html"), 800);
-    return false;
-  }
-
-  if (Date.now() - loginTime > TOKEN_EXPIRY) {
-    localStorage.clear();
-    showToast("Session expired. Please login again.", "error");
-    setTimeout(() => (window.location.href = "login.html"), 800);
+    alert("Session expired");
+    window.location.href = "login.html";
     return false;
   }
 
   return true;
+}
+
+function saveLogin(token) {
+  localStorage.setItem("token", token);
+  localStorage.setItem("loginTime", String(Date.now()));
 }
 
 function getAuthHeaders() {

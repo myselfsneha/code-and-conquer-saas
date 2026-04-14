@@ -1,21 +1,21 @@
 // =============================
 // AUTO REDIRECT IF LOGGED IN
 // =============================
-if (localStorage.getItem("token")) {
+const token = localStorage.getItem("token");
+
+if (token) {
     window.location.href = "dashboard.html";
 }
 
 // =============================
-// SMOOTH SCROLL (FUTURE USE)
+// SMOOTH SCROLL
 // =============================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener("click", function (e) {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute("href"));
         if (target) {
-            target.scrollIntoView({
-                behavior: "smooth"
-            });
+            target.scrollIntoView({ behavior: "smooth" });
         }
     });
 });
@@ -23,9 +23,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // =============================
 // BUTTON CLICK ANIMATION
 // =============================
-const buttons = document.querySelectorAll(".btn");
-
-buttons.forEach(btn => {
+document.querySelectorAll(".btn").forEach(btn => {
     btn.addEventListener("click", () => {
         btn.style.transform = "scale(0.95)";
         setTimeout(() => {
@@ -35,7 +33,7 @@ buttons.forEach(btn => {
 });
 
 // =============================
-// FADE-IN ON LOAD (ENHANCED)
+// FADE-IN ON LOAD
 // =============================
 window.addEventListener("load", () => {
     document.body.style.opacity = "0";
@@ -47,33 +45,31 @@ window.addEventListener("load", () => {
 });
 
 // =============================
-// KEYBOARD SHORTCUTS (PRO TOUCH)
+// KEYBOARD SHORTCUTS
 // =============================
 document.addEventListener("keydown", (e) => {
-
-    // Press L → Login
     if (e.key.toLowerCase() === "l") {
         window.location.href = "login.html";
     }
 
-    // Press R → Register
     if (e.key.toLowerCase() === "r") {
         window.location.href = "register.html";
     }
-
 });
 
 // =============================
-// HOVER GLOW EFFECT (CARDS)
+// CARD HOVER EFFECT
 // =============================
-const cards = document.querySelectorAll(".feature-card");
+window.addEventListener("load", () => {
+    const cards = document.querySelectorAll(".feature-card");
 
-cards.forEach(card => {
-    card.addEventListener("mouseenter", () => {
-        card.style.boxShadow = "0 0 20px rgba(255,255,255,0.4)";
-    });
+    cards.forEach(card => {
+        card.addEventListener("mouseenter", () => {
+            card.style.boxShadow = "0 0 20px rgba(255,255,255,0.4)";
+        });
 
-    card.addEventListener("mouseleave", () => {
-        card.style.boxShadow = "none";
+        card.addEventListener("mouseleave", () => {
+            card.style.boxShadow = "none";
+        });
     });
 });

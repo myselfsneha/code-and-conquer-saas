@@ -2,21 +2,19 @@ checkAuth();
 
 let tenants = JSON.parse(localStorage.getItem("tenants")) || [];
 
+// ===== SAVE =====
 function saveTenants(){
     localStorage.setItem("tenants", JSON.stringify(tenants));
 }
 
 // ===== RENDER =====
 function renderTenants(){
-    let table = document.getElementById("tenantTable");
-    let search = document.getElementById("searchTenant").value.toLowerCase();
-
-    let students = JSON.parse(localStorage.getItem("students")) || [];
-    let courses = JSON.parse(localStorage.getItem("courses")) || [];
+    const table = document.getElementById("tenantTable");
+    const search = document.getElementById("searchTenant").value.toLowerCase();
 
     table.innerHTML = "";
 
-    let filtered = tenants.filter(t => 
+    const filtered = tenants.filter(t => 
         t.name.toLowerCase().includes(search)
     );
 
@@ -27,16 +25,13 @@ function renderTenants(){
 
     filtered.forEach((t, index) => {
 
-        let studentCount = students.filter(s => s.tenant_id === t.tenant_id).length;
-        let courseCount = courses.filter(c => c.tenant_id === t.tenant_id).length;
-
         table.innerHTML += `
         <tr>
             <td>${index+1}</td>
             <td>${t.name}</td>
             <td>${t.email}</td>
-            <td>${studentCount}</td>
-            <td>${courseCount}</td>
+            <td>-</td>
+            <td>-</td>
             <td>
                 <span class="badge bg-${t.status === "Active" ? "success" : "secondary"}">
                     ${t.status}
@@ -52,23 +47,26 @@ function renderTenants(){
 
 // ===== ADD =====
 function addTenant(){
-    let name = document.getElementById("tenantName").value;
-    let email = document.getElementById("tenantEmail").value;
-    let status = document.getElementById("tenantStatus").value;
+    const name = document.getElementById("tenantName").value.trim();
+    const email = document.getElementById("tenantEmail").value.trim();
+    const status = document.getElementById("tenantStatus").value;
 
     if(!name || !email){
-        alert("Fill all fields");
+        showToast("Fill all fields ❌", "error");
         return;
     }
 
     tenants.push({
-    tenant_id: Date.now(), // unique id
-    name,
-    email,
-    status
-});
+        tenant_id: Date.now(),
+        name,
+        email,
+        status
+    });
 
     saveTenants();
+
+    showToast("Tenant added ✅");
+
     closeModal();
     renderTenants();
 }
@@ -77,6 +75,7 @@ function addTenant(){
 function deleteTenant(index){
     tenants.splice(index,1);
     saveTenants();
+    showToast("Deleted 🗑️");
     renderTenants();
 }
 
@@ -84,6 +83,7 @@ function deleteTenant(index){
 function toggleStatus(index){
     tenants[index].status = tenants[index].status === "Active" ? "Inactive" : "Active";
     saveTenants();
+    showToast("Status updated 🔄");
     renderTenants();
 }
 

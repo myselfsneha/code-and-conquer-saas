@@ -1,67 +1,32 @@
-async function registerUser(){
+async function registerUser() {
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    const role = document.getElementById("role").value;
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const tenant_id = document.getElementById("tenant").value;
+  if (!name || !email || !password) {
+    showToast("Fill all fields ❌", "error");
+    return;
+  }
 
-    const btn = document.querySelector("button");
+  try {
+    showLoader();
 
-    if(!role){
-        showToast("Select role ❌");
-        return;
-    }
+    await apiRequest("/register-admin", "POST", {
+      name,
+      email,
+      password,
+      tenant_id: Date.now() // temp id
+    });
 
-    if(!name || !email || !password){
-        showToast("Fill all fields ❌");
-        return;
-    }
+    showToast("Registered ✅");
 
-    try{
-        showLoader();
+    setTimeout(() => {
+      window.location.href = "login.html";
+    }, 1000);
 
-        btn.innerText = "Registering...";
-        btn.disabled = true;
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 
-        const res = await fetch(`${API}/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ role, name, email, password })
-        });
-
-        const data = await res.json();
-        console.log("REGISTER RESPONSE:", data);
-
-        if(!res.ok){
-            showToast(data.message || "Registration failed ❌");
-            btn.innerText = "Register";
-            btn.disabled = false;
-            hideLoader();
-            return;
-        }
-
-        showToast("Registration successful ✅");
-
-        setTimeout(()=>{
-            window.location.href = "login.html";
-        }, 1200);
-
-    }catch(err){
-        console.error(err);
-        showToast("Server error ❌");
-        btn.innerText = "Register";
-        btn.disabled = false;
-    }
-
-    hideLoader();
+  hideLoader();
 }
-
-/* ENTER KEY SUPPORT */
-document.addEventListener("keypress", function(e){
-    if(e.key === "Enter"){
-        registerUser();
-    }
-});
