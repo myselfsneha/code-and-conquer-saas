@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 app.use(cors({
-  origin: ["https://code-and-conquer-saas-11g6.onrender.com"],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
