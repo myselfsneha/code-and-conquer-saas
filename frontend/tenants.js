@@ -2,19 +2,21 @@ checkAuth();
 
 let tenants = JSON.parse(localStorage.getItem("tenants")) || [];
 
-// ===== SAVE =====
 function saveTenants(){
     localStorage.setItem("tenants", JSON.stringify(tenants));
 }
 
 // ===== RENDER =====
 function renderTenants(){
-    const table = document.getElementById("tenantTable");
-    const search = document.getElementById("searchTenant").value.toLowerCase();
+    let table = document.getElementById("tenantTable");
+    let search = document.getElementById("searchTenant").value.toLowerCase();
+
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let courses = JSON.parse(localStorage.getItem("courses")) || [];
 
     table.innerHTML = "";
 
-    const filtered = tenants.filter(t => 
+    let filtered = tenants.filter(t => 
         t.name.toLowerCase().includes(search)
     );
 
@@ -25,13 +27,17 @@ function renderTenants(){
 
     filtered.forEach((t, index) => {
 
+        // fake mapping for now (later backend)
+        let studentCount = students.length;
+        let courseCount = courses.length;
+
         table.innerHTML += `
         <tr>
             <td>${index+1}</td>
             <td>${t.name}</td>
             <td>${t.email}</td>
-            <td>-</td>
-            <td>-</td>
+            <td>${studentCount}</td>
+            <td>${courseCount}</td>
             <td>
                 <span class="badge bg-${t.status === "Active" ? "success" : "secondary"}">
                     ${t.status}
@@ -47,26 +53,22 @@ function renderTenants(){
 
 // ===== ADD =====
 function addTenant(){
-    const name = document.getElementById("tenantName").value.trim();
-    const email = document.getElementById("tenantEmail").value.trim();
-    const status = document.getElementById("tenantStatus").value;
+    let name = document.getElementById("tenantName").value;
+    let email = document.getElementById("tenantEmail").value;
+    let status = document.getElementById("tenantStatus").value;
 
     if(!name || !email){
-        showToast("Fill all fields ❌", "error");
+        alert("Fill all fields");
         return;
     }
 
     tenants.push({
-        tenant_id: Date.now(),
         name,
         email,
         status
     });
 
     saveTenants();
-
-    showToast("Tenant added ✅");
-
     closeModal();
     renderTenants();
 }
@@ -75,7 +77,6 @@ function addTenant(){
 function deleteTenant(index){
     tenants.splice(index,1);
     saveTenants();
-    showToast("Deleted 🗑️");
     renderTenants();
 }
 
@@ -83,7 +84,6 @@ function deleteTenant(index){
 function toggleStatus(index){
     tenants[index].status = tenants[index].status === "Active" ? "Inactive" : "Active";
     saveTenants();
-    showToast("Status updated 🔄");
     renderTenants();
 }
 

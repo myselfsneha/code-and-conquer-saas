@@ -1,81 +1,45 @@
-checkAuth();
-
-let allCourses = [];
-
-async function loadCourses() {
-  showLoader();
-
-  try {
-    const data = await apiRequest("/courses");
-    allCourses = data;
-
-    renderCourses();
-
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-
-  hideLoader();
-}
+let courses = getData("courses");
 
 function renderCourses() {
-  const table = document.getElementById("courseTable");
-  const search = document.getElementById("searchCourse").value.toLowerCase();
 
+  let table = document.getElementById("courseTable");
   table.innerHTML = "";
 
-  const filtered = allCourses.filter(c =>
-    c.name.toLowerCase().includes(search)
-  );
-
-  if (!filtered.length) {
-    table.innerHTML = `<tr><td colspan="6">No courses 😕</td></tr>`;
-    return;
-  }
-
-  filtered.forEach((c, i) => {
+  courses.forEach((c, i) => {
     table.innerHTML += `
-    <tr>
-      <td>${i+1}</td>
-      <td>${c.name}</td>
-      <td>${c.duration}</td>
-      <td>₹${c.fees}</td>
-      <td>
-        <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.course_id})">Delete</button>
-      </td>
-    </tr>`;
+      <tr>
+        <td>${i+1}</td>
+        <td>${c.name}</td>
+        <td>${c.duration}</td>
+        <td>₹${c.fees}</td>
+        <td>-</td>
+        <td>
+          <button onclick="deleteCourse(${i})">Delete</button>
+        </td>
+      </tr>
+    `;
   });
 }
 
-async function addCourse() {
-  const name = document.getElementById("courseName").value;
-  const duration = document.getElementById("courseDuration").value;
-  const fees = document.getElementById("courseFees").value;
+function addCourse() {
 
-  try {
-    await apiRequest("/courses", "POST", { name, duration, fees });
+  let name = document.getElementById("courseName").value;
+  let duration = document.getElementById("courseDuration").value;
+  let fees = document.getElementById("courseFees").value;
 
-    showToast("Course added ✅");
-    closeModal();
-    loadCourses();
+  courses.push({ id: Date.now(), name, duration, fees });
 
-  } catch (err) {
-    showToast(err.message, "error");
-  }
+  setData("courses", courses);
+
+  showToast("Course added ✅");
+
+  renderCourses();
 }
 
-async function deleteCourse(id) {
-  try {
-    await apiRequest(`/courses/${id}`, "DELETE");
-
-    showToast("Deleted 🗑️");
-    loadCourses();
-
-  } catch (err) {
-    showToast(err.message, "error");
-  }
+function deleteCourse(i) {
+  courses.splice(i,1);
+  setData("courses", courses);
+  renderCourses();
 }
 
-document.getElementById("searchCourse").addEventListener("input", renderCourses);
-
-loadCourses();
+renderCourses();

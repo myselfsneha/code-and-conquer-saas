@@ -1,109 +1,51 @@
-checkAuth();
-
-let students = [];
-let page = 1;
-const limit = 10;
-
-async function loadCourses() {
-  try {
-    const data = await apiRequest("/courses");
-
-    const courseDropdown = document.getElementById("course");
-    const filterDropdown = document.getElementById("filterCourse");
-
-    courseDropdown.innerHTML = `<option value="">Select Course</option>`;
-    filterDropdown.innerHTML = `<option value="">All Courses</option>`;
-
-    data.forEach((course) => {
-      courseDropdown.innerHTML += `<option value="${course.name}">${course.name}</option>`;
-      filterDropdown.innerHTML += `<option value="${course.name}">${course.name}</option>`;
-    });
-
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-}
-
-async function fetchStudents() {
-  showLoader();
-
-  try {
-    const search = document.getElementById("search").value;
-    const course = document.getElementById("filterCourse").value;
-    const year = document.getElementById("filterYear").value;
-
-    const params = new URLSearchParams({ page, limit });
-
-    if (search) params.append("search", search);
-    if (course) params.append("course", course);
-    if (year) params.append("year", year);
-
-    const data = await apiRequest(`/students?${params}`);
-
-    students = data.students || [];
-
-    renderStudents();
-
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-
-  hideLoader();
-}
+let students = getData("students");
 
 function renderStudents() {
-  const table = document.getElementById("tableBody");
+
+  let table = document.getElementById("tableBody");
+  let search = document.getElementById("search").value.toLowerCase();
+
   table.innerHTML = "";
 
-  if (students.length === 0) {
-    table.innerHTML = `<tr><td colspan="8">No students 😕</td></tr>`;
-    return;
-  }
+  let filtered = students.filter(s =>
+    s.name.toLowerCase().includes(search)
+  );
 
-  students.forEach((s, i) => {
+  filtered.forEach((s, i) => {
     table.innerHTML += `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${s.name}</td>
-      <td>${s.email}</td>
-      <td>${s.course}</td>
-      <td>${s.year}</td>
-      <td>₹${s.total_paid}</td>
-      <td>${s.attendance_percentage}%</td>
-      <td>-</td>
-    </tr>`;
+      <tr>
+        <td>${i+1}</td>
+        <td>${s.name}</td>
+        <td>${s.email}</td>
+        <td>${s.course}</td>
+        <td>${s.year}</td>
+        <td>₹${s.fees}</td>
+        <td>${s.attendance}%</td>
+        <td>-</td>
+      </tr>
+    `;
   });
 }
 
-async function addStudent() {
-  const name = document.getElementById("name").value;
-  const email = document.getElementById("email").value;
-  const course = document.getElementById("course").value;
-  const year = document.getElementById("year").value;
+function addStudent() {
 
-  if (!name || !email || !course || !year) {
-    showToast("Fill all fields", "error");
-    return;
-  }
+  let name = document.getElementById("name").value;
+  let email = document.getElementById("email").value;
+  let course = document.getElementById("course").value;
+  let year = document.getElementById("year").value;
 
-  try {
-    await apiRequest("/students", "POST", {
-      name,
-      email,
-      course,
-      year,
-    });
+  students.push({
+    id: Date.now(),
+    name, email, course, year,
+    fees: 0,
+    attendance: 0
+  });
 
-    showToast("Student added ✅");
-    closeModal();
-    fetchStudents();
+  setData("students", students);
 
-  } catch (err) {
-    showToast(err.message, "error");
-  }
+  showToast("Student added ✅");
+
+  renderStudents();
 }
 
-document.getElementById("search").addEventListener("input", fetchStudents);
-
-loadCourses();
-fetchStudents();
+renderStudents();

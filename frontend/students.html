@@ -10,122 +10,124 @@
 
 <body>
 
-<div class="loader" id="loader">
-  <div></div>
+    <div class="loader" id="loader">
+    <div></div>
 </div>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
-  <h2>🎓 EduNexus </h2>
-  <a href="dashboard.html">📊 Dashboard</a>
-  <a href="students.html" class="active">👨‍🎓 Students</a>
-  <a href="courses.html">📚 Courses</a>
+<h2>🎓 Code & Conquer</h2>
+<a href="dashboard.html">📊 Dashboard</a>
+<a href="students.html" class="active">👨‍🎓 Students</a>
+<a href="courses.html">📚 Courses</a>
 
-  <label class="switch mt-3">
-    <input type="checkbox" onclick="toggleDark()">
-    <span class="slider"></span>
-  </label>
-  <p>Dark Mode</p>
+<label class="switch mt-3">
+<input type="checkbox" onclick="toggleDark()">
+<span class="slider"></span>
+</label>
+<p>Dark Mode</p>
 
-  <br>
-  <button class="btn btn-danger w-100 mt-3" onclick="logout()">🚪 Logout</button>
+<br>
+<button class="btn btn-danger w-100 mt-3" onclick="logout()">🚪 Logout</button>
 </div>
 
-<!-- MAIN -->
 <div class="main">
-  <div class="card-custom">
 
-    <h3>Student 👨‍🎓</h3>
+<div class="card-custom">
 
-    <!-- 🔍 SEARCH + FILTER -->
-    <input type="text" id="search" class="form-control mb-2" placeholder="Search by name">
+<h3>Student 👨‍🎓</h3>
 
-    <select id="filterCourse" class="form-control mb-2">
-      <option value="">All Courses</option>
-    </select>
+<!-- 🔍 SEARCH + FILTER -->
+<input type="text" id="search" class="form-control mb-2" placeholder="Search by name">
 
-    <select id="filterYear" class="form-control mb-2">
-      <option value="">All Years</option>
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-    </select>
+<select id="filterCourse" class="form-control mb-2">
+    <option value="">All Courses</option>
+</select>
 
-    <!-- ✅ FIXED BUTTON -->
-    <button class="btn btn-primary mb-3" onclick="fetchStudents()">Search</button>
+<select id="filterYear" class="form-control mb-2">
+<option value="">All Years</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+</select>
 
-    <!-- ➕ ADD -->
-    <button class="btn btn-success mb-3" onclick="openModal()">+ Add Student</button>
+<button class="btn btn-primary mb-3" onclick="renderStudents()">Search</button>
 
-    <!-- 📊 TABLE -->
-    <table class="table text-center">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Course</th>
-          <th>Year</th>
-          <th>Fees Paid</th>
-          <th>Attendance %</th>
-          <th>Action</th>
-        </tr>
-      </thead>
+<!-- ➕ ADD -->
+<button class="btn btn-success mb-3" onclick="openModal()">+ Add Student</button>
 
-      <tbody id="tableBody"></tbody>
-    </table>
+<!-- 📊 TABLE -->
+<table class="table text-center">
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Course</th>
+<th>Year</th>
+<th>Fees Paid</th>
+<th>Attendance %</th>
+<th>Action</th>
+</tr>
+</thead>
 
-  </div>
+<tbody id="tableBody"></tbody>
+</table>
+
+</div>
+
 </div>
 
 <!-- MODAL -->
 <div class="modal" id="studentModal">
-  <div class="modal-content">
+<div class="modal-content">
 
-   <h5>Add Student</h5>
+<h5>Add Student</h5>
 
-   <input id="name" class="form-control mb-2" placeholder="Name">
-   <input id="email" class="form-control mb-2" placeholder="Email">
+<input id="name" class="form-control mb-2" placeholder="Name">
+<input id="email" class="form-control mb-2" placeholder="Email">
 
-  <select id="course" class="form-control mb-2"></select>
+<select id="course" class="form-control mb-2">
+<option value="">Select Course</option>
+</select>
 
-  <select id="year" class="form-control mb-2">
-  <option value="">Select Year</option>
-  <option value="1">1</option>
-  <option value="2">2</option>
-  <option value="3">3</option>
-  </select>
+<select id="year" class="form-control mb-2">
+<option value="">Select Year</option>
+<option value="1">1</option>
+<option value="2">2</option>
+<option value="3">3</option>
+</select>
 
-  <select id="tenantSelect" class="form-control mb-2"></select>
+<input id="fees" class="form-control mb-2" placeholder="Fees Paid">
+<input id="attendance" class="form-control mb-2" placeholder="Attendance %">
 
-  <input id="fees" class="form-control mb-2" placeholder="Fees Paid">
-  <input id="attendance" class="form-control mb-2" placeholder="Attendance %">
+<button class="btn btn-success w-100 mb-2" onclick="addStudent()">Add</button>
+<button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
 
-    <button class="btn btn-success w-100 mb-2" onclick="addStudent()">Add</button>
-    <button class="btn btn-secondary w-100" onclick="closeModal()">Cancel</button>
-
-  </div>
+</div>
 </div>
 
-<script src="https://code-and-conquer-saas-11g6.onrender.com/student.js"></script>
 
 <script>
 function toggleDark(){
-  document.body.classList.toggle("dark");
+document.body.classList.toggle("dark");
 }
 
 function openModal(){
-  document.getElementById("studentModal").style.display="flex";
+document.getElementById("studentModal").style.display="flex";
 }
 
 function closeModal(){
-  document.getElementById("studentModal").style.display="none";
+document.getElementById("studentModal").style.display="none";
+}
+
+function logout(){
+localStorage.clear();
+window.location.href="login.html";
 }
 </script>
 
 <script src="config.js"></script>
 <script src="common.js"></script>
 <script src="students.js"></script>
-
 </body>
 </html>

@@ -1,31 +1,36 @@
-const API = "https://code-and-conquer-saas-11g6.onrender.com";
+// LOCAL MODE (NO BACKEND)
 
-const TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
+// Fake DB using localStorage
+function getData(key) {
+  return JSON.parse(localStorage.getItem(key)) || [];
+}
 
-async function apiRequest(endpoint, method = "GET", body = null) {
-  const token = localStorage.getItem("token");
+function setData(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
-  const options = {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
+// INIT DEFAULT DATA (FIRST TIME)
+if (!localStorage.getItem("initialized")) {
 
-  if (token) {
-    options.headers["Authorization"] = "Bearer " + token;
-  }
+  setData("users", [
+    { email: "admin@test.com", password: "123", role: "admin" },
+    { email: "college@test.com", password: "123", role: "college" },
+    { email: "student@test.com", password: "123", role: "student" }
+  ]);
 
-  if (body) {
-    options.body = JSON.stringify(body);
-  }
+  setData("students", [
+    { id: 1, name: "Rahul", email: "rahul@gmail.com", course: "BCA", year: 1, fees: 20000, attendance: 80 },
+    { id: 2, name: "Priya", email: "priya@gmail.com", course: "MBA", year: 2, fees: 50000, attendance: 75 }
+  ]);
 
-  const res = await fetch(API + endpoint, options);
-  const data = await res.json();
+  setData("courses", [
+    { id: 1, name: "BCA", duration: "3 Years", fees: 60000 },
+    { id: 2, name: "MBA", duration: "2 Years", fees: 120000 }
+  ]);
 
-  if (!res.ok) {
-    throw new Error(data.message || "Error");
-  }
+  setData("tenants", [
+    { id: 1, name: "ABC College", status: "Active" }
+  ]);
 
-  return data;
+  localStorage.setItem("initialized", "true");
 }

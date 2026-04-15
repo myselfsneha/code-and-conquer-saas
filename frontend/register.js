@@ -1,32 +1,24 @@
-async function registerUser() {
+function registerUser() {
+
+  const role = document.getElementById("role").value;
   const name = document.getElementById("name").value;
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  if (!name || !email || !password) {
-    showToast("Fill all fields ❌", "error");
+  if (!role || !name || !email || !password) {
+    showToast("Fill all fields ❌");
     return;
   }
 
-  try {
-    showLoader();
+  let users = getData("users");
 
-    await apiRequest("/register-admin", "POST", {
-      name,
-      email,
-      password,
-      tenant_id: Date.now() // temp id
-    });
+  users.push({ name, email, password, role });
 
-    showToast("Registered ✅");
+  setData("users", users);
 
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 1000);
+  showToast("Registered successfully ✅");
 
-  } catch (err) {
-    showToast(err.message, "error");
-  }
-
-  hideLoader();
+  setTimeout(() => {
+    window.location.href = "login.html";
+  }, 1000);
 }
